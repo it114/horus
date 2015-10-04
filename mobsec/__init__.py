@@ -1,13 +1,10 @@
 #! ../env/bin/python
 # -*- coding: utf-8 -*-
 
-#__author__ = 'viyat'
-#__email__ = 'viyat001@gmail.com'
 __version__ = '0.11'
 
 from flask import Flask
 from webassets.loaders import PythonLoader as PythonAssetsLoader
-
 from mobsec.controllers.main import main
 from mobsec import assets
 from mobsec.models import db
@@ -16,7 +13,6 @@ from mobsec.extensions import (
     cache,
     assets_env,
     debug_toolbar,
-   #login_manager
 )
 
 
@@ -46,7 +42,6 @@ def create_app(object_name, env="prod"):
     # initialize SQLAlchemy
     db.init_app(app)
 
-    #login_manager.init_app(app)
 
     # Import and register the different asset bundles
     assets_env.init_app(app)
