@@ -1,53 +1,24 @@
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import UserMixin, AnonymousUserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
 
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer(), primary_key=True)
-    username = db.Column(db.String())
-    password = db.Column(db.String())
+class StaticAnalyzerAndroid(db.Model):
+    __tablename__ = "static_analyzer"
 
-    def __init__(self, username, password):
-        self.username = username
-        self.set_password(password)
-
-    def set_password(self, password):
-        self.password = generate_password_hash(password)
-
-    def check_password(self, value):
-        return check_password_hash(self.password, value)
-
-    def is_authenticated(self):
-        if isinstance(self, AnonymousUserMixin):
-            return False
-        else:
-            return True
-
-    def is_active(self):
-        return True
-
-    def is_anonymous(self):
-        if isinstance(self, AnonymousUserMixin):
-            return True
-        else:
-            return False
-
-    def get_id(self):
-        return self.id
-
-    def __repr__(self):
-        return '<User %r>' % self.username
-
-
-class StaticAnalyzerAndroid(db.model):
-    title = db.Column(db.String())
-    app_name = db.Column(db.String())
+    id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
+    name = db.Column(db.String())
     size = db.Column(db.Integer())
     md5 = db.Column(db.String())
     sha1 = db.Column(db.String())
     sha256 = db.Column(db.String())
-    package_name = db.Column(db.String())
-    main_activity = db.Column(db.String())
+
+    def __init__(self, name, size, md5, sha1, sha256):
+        self.name = name
+        self.size = size
+        self.md5 = md5
+        self.sha1 = sha1
+        self.sha256 = sha256
+
+    def __repr__(self):
+        return self.title
