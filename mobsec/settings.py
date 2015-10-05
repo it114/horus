@@ -1,7 +1,9 @@
+import os
 import tempfile
 
 db_file = tempfile.NamedTemporaryFile()
 
+UPLOADS = os.path.join(os.getcwd(), 'uploads')
 
 class Config(object):
     SECRET_KEY = '#r$=rg*lit&!4nukg++@%k+n9#6fhkv_*a6)2t$n1b=*sadwq'
