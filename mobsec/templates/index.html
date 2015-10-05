@@ -7,8 +7,26 @@
         <h1>mobsec - a security framework for pentesting Android apps</h1>
     </div>
 
-    <div id="upload" style="text-align: center;">
-        <input type="button" class="btn btn-primary btn-lg" value="Upload .apk">
-    </div>
+    <form id="upload_apk" action="/" method="POST" enctype="multipart/form-data">
+        <span class="btn btn-success fileinput-button">
+            <span>Select .apk</span>
+            <input type="file" name="files[]" />
+        </span>
+        <button type="submit" class="btn btn-primary start">
+            <span>Upload</span>
+        </button>
+    </form>
 {%endblock%}
+
+    <script>
+    $('upload_apk').fileupload({
+        type: 'POST',
+        url: '/',
+        dataType: 'json',
+        done: function(e, data) {
+            if (data.success) {
+                alert("yay!");
+            }
+    }});
+    </script>
 
