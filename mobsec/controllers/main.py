@@ -25,7 +25,6 @@ def upload():
         if apk:
             app_name = secure_filename(apk.filename)
             apk.save(os.path.join(UPLOADS, app_name))
-            flash("Success!")
             return redirect(url_for(".dashboard", apk=base64.b64encode(app_name)))
 
 @main.route("/dashboard", methods=['GET'])
