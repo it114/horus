@@ -5,6 +5,7 @@ from werkzeug import secure_filename
 from mobsec.extensions import cache
 from mobsec.settings import UPLOADS
 
+ALLOWED_EXTENSIONS = set(['ipa', 'zip', 'apk'])
 
 main = Blueprint('main', __name__)
 
@@ -22,11 +23,18 @@ def about():
 def upload():
     if request.method == 'POST':
         apk = request.files['files[]']
-        if apk:
+        if apk and allowed_file(apk.filename):
             app_name = secure_filename(apk.filename)
             apk.save(os.path.join(UPLOADS, app_name))
             return redirect(url_for(".dashboard", apk=base64.b64encode(app_name)))
+        else:
+            flash("Illegal extension!")
+            return redirect(url_for(".home"))
 
 @main.route("/dashboard", methods=['GET'])
 def dashboard():
     return render_template('dashboard.html')
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
