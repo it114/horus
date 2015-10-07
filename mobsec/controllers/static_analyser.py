@@ -3,14 +3,14 @@ import subprocess
 import base64
 from templates import settings
 from flask import render_template
-
+import io,re,os,glob,hashlib, zipfile, subprocess,ntpath,shutil,platform,ast,sys
 
 def decompileInfo():
 	filenames = glob.glob(os.path.join(BASE_DIR,"uploads/*.apk"))
 	for file in filenames:
-		fName = file.split('.apk')
-		f = open(fName,'a')
-		process = subprocess.Popen(["jadx","-d","out",fName,file],stderr=f)
+		f_name = file.split('.apk')
+		f = open(f_name,'r')
+		process = subprocess.Popen(["jadx","-d","out",f_name,file],stderr=f)
 
 def ManifestView(request):
     try:
@@ -38,6 +38,19 @@ def ReadManifest(app_dir):
         dat=f.read()
 
     return dat
+
+def GetManifest(APP_DIR):
+    dat=''
+    mfest=''
+    dat=ReadManifest(APP_DIR).replace("\n","")
+    try:
+        print "[INFO] Parsing AndroidManifest.xml"
+        mfest=minidom.parseString(dat)
+    except Exception as e:
+        print "[ERROR] Parsing AndroidManifest.xml - " + str(e)
+        mfest=minidom.parseString(r'<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="Failed"  android:versionName="Failed" package="Failed"  platformBuildVersionCode="Failed" platformBuildVersionName="Failed XML Parsing" ></manifest>')      
+        print "[WARNING] Using Fake XML to continue the Analysis"
+    return mfest
 
 def StaticAnalyzer(request):
     try:
@@ -105,11 +118,11 @@ def StaticAnalyzer(request):
                     #ANALYSIS BEGINS
                     size_apk=str(FileSize(app_path)) + 'MB'   #FILE SIZE
                     SHA1, SHA256= HashGen(app_path)       #SHA1 & SHA256 HASHES
-                    FILES=Unzip(app_path,app_dir)
-                    CERTZ = GetHardcodedCert(FILES)
+                    file_namelist=Unzip(app_path,app_dir)
+                    CERTZ = GetHardcodedCert(file_namelist)
                     print "[INFO] APK Extracted"
-                    PARSEDXML= GetManifest(APP_DIR,TOOLS_DIR,'',True) #Manifest XML
-                    MANI='../ManifestView/?md5='+MD5+'&type=apk&bin=1'
+                    parsed_xml= GetManifest(app_dir) #Manifest XML
+                    """MANI='../ManifestView/?md5='+MD5+'&type=apk&bin=1'
                     SERVICES,ACTIVITIES,RECEIVERS,PROVIDERS,LIBRARIES,PERM,PACKAGENAME,MAINACTIVITY,MIN_SDK,MAX_SDK,TARGET_SDK,ANDROVER,ANDROVERNAME=ManifestData(PARSEDXML,APP_DIR)
                     MANIFEST_ANAL,EXPORTED_ACT=ManifestAnalysis(PARSEDXML,MAINACTIVITY)
                     PERMISSIONS=FormatPermissions(PERM)
@@ -127,12 +140,12 @@ def StaticAnalyzer(request):
                     print "\n[INFO] Generating Java and Smali Downloads"
                     GenDownloads(APP_DIR,MD5)
                     STRINGS=Strings(APP_FILE,APP_DIR,TOOLS_DIR)
-                    ZIPPED='&type=apk'
+                    ZIPPED='&type=apk'"""
     
                     print "\n[INFO] Connecting to Database"
                     try:
                         #SAVE TO DB
-                        if RESCAN=='1':
+                        """if RESCAN=='1':
                             print "\n[INFO] Updating Database..."
                             StaticAnalyzerAndroid.objects.filter(MD5=MD5).update(TITLE = 'Static Analysis',
                             APP_NAME = APP_NAME,
@@ -174,7 +187,7 @@ def StaticAnalyzer(request):
                             ZIPPED= ZIPPED,
                             MANI= MANI,
                             EXPORTED_ACT=EXPORTED_ACT)
-                        elif RESCAN=='0':
+                        elif RESCAN=='0':"""
                             print "\n[INFO] Saving to Database"
                             STATIC_DB=StaticAnalyzerAndroid(TITLE = 'Static Analysis',
                             APP_NAME = APP_NAME,
@@ -182,7 +195,7 @@ def StaticAnalyzer(request):
                             MD5= MD5,
                             SHA1 = SHA1,
                             SHA256 = SHA256,
-                            PACKAGENAME = PACKAGENAME,
+                            """PACKAGENAME = PACKAGENAME,
                             MAINACTIVITY= MAINACTIVITY,
                             TARGET_SDK = TARGET_SDK,
                             MAX_SDK = MAX_SDK,
@@ -215,7 +228,7 @@ def StaticAnalyzer(request):
                             STRINGS= STRINGS,
                             ZIPPED= ZIPPED,
                             MANI= MANI,
-                            EXPORTED_ACT=EXPORTED_ACT)
+                            EXPORTED_ACT=EXPORTED_ACT""")
                             STATIC_DB.save()
                     except Exception as e:
                         print "\n[ERROR] Saving to Database Failed - "+str(e)
@@ -227,7 +240,7 @@ def StaticAnalyzer(request):
                     'md5': MD5,
                     'sha1' : SHA1,
                     'sha256' : SHA256,
-                    'packagename' : PACKAGENAME,
+                    """'packagename' : PACKAGENAME,
                     'mainactivity' : MAINACTIVITY,
                     'targetsdk' : TARGET_SDK,
                     'maxsdk' : MAX_SDK,
@@ -259,10 +272,10 @@ def StaticAnalyzer(request):
                     'emails': EMAILS,
                     'strings': STRINGS,
                     'zipped' : ZIPPED,
-                    'mani': MANI
+                    'mani': MANI"""
                     }
                 template="static_analysis.html"
-                return render(request,template,context)
+                return render_template(request,template,context)
             elif TYP=='zip':
                 #Check if in DB
                 DB=StaticAnalyzerAndroid.objects.filter(MD5=MD5)
@@ -340,7 +353,7 @@ def StaticAnalyzer(request):
                                 MD5= MD5,
                                 SHA1 = SHA1,
                                 SHA256 = SHA256,
-                                PACKAGENAME = PACKAGENAME,
+                                """PACKAGENAME = PACKAGENAME,
                                 MAINACTIVITY= MAINACTIVITY,
                                 TARGET_SDK = TARGET_SDK,
                                 MAX_SDK = MAX_SDK,
@@ -373,7 +386,7 @@ def StaticAnalyzer(request):
                                 STRINGS= "",
                                 ZIPPED= "",
                                 MANI= MANI,
-                                EXPORTED_ACT=EXPORTED_ACT)
+                                EXPORTED_ACT=EXPORTED_ACT""")
                             elif RESCAN=='0':
                                 print "\n[INFO] Saving to Database"
                                 STATIC_DB=StaticAnalyzerAndroid(TITLE = 'Static Analysis',
@@ -382,7 +395,7 @@ def StaticAnalyzer(request):
                                 MD5= MD5,
                                 SHA1 = SHA1,
                                 SHA256 = SHA256,
-                                PACKAGENAME = PACKAGENAME,
+                                """PACKAGENAME = PACKAGENAME,
                                 MAINACTIVITY= MAINACTIVITY,
                                 TARGET_SDK = TARGET_SDK,
                                 MAX_SDK = MAX_SDK,
@@ -415,7 +428,7 @@ def StaticAnalyzer(request):
                                 STRINGS= "",
                                 ZIPPED= "",
                                 MANI= MANI,
-                                EXPORTED_ACT=EXPORTED_ACT)
+                                EXPORTED_ACT=EXPORTED_ACT""")
                                 STATIC_DB.save()
                         except Exception as e:
                             print "\n[ERROR] Saving to Database Failed - "+str(e)
@@ -427,7 +440,7 @@ def StaticAnalyzer(request):
                         'md5': MD5,
                         'sha1' : SHA1,
                         'sha256' : SHA256,
-                        'packagename' : PACKAGENAME,
+                        """'packagename' : PACKAGENAME,
                         'mainactivity' : MAINACTIVITY,
                         'targetsdk' : TARGET_SDK,
                         'maxsdk' : MAX_SDK,
@@ -456,7 +469,7 @@ def StaticAnalyzer(request):
                         'dang': DANG,
                         'urls': URLS,
                         'emails': EMAILS,
-                        'mani': MANI,
+                        'mani': MANI,"""
                         }
                     elif Valid and pro_type=='ios':
                         print "[INFO] Redirecting to iOS Source Code Analyzer"
@@ -490,3 +503,45 @@ def GetHardcodedCert(files):
         certz="<tr><td>Certificate/Key Files Hardcoded inside the App.</td><td>"+certz+"</td><tr>"
     return certz
     return re.sub(RE_XML_ILLEGAL, "?", dat)
+
+def FileSize(app_path): 
+	return round(float(os.path.getsize(app_path)) / (1024 * 1024),2)
+
+def HashGen(app_path):
+    print "[INFO] Generating Hashes"
+    sha1 = hashlib.sha1()
+    sha256 = hashlib.sha256()
+    BLOCKSIZE = 65536
+    with io.open(app_path, mode='rb') as app_file:
+        buf_block = app_file.read(BLOCKSIZE)
+        while len(buf_block) > 0:
+            sha1.update(buf_block)
+            sha256.update(buf_block)
+            buf_block = app_file.read(BLOCKSIZE)
+    sha1_val = sha1.hexdigest()
+    sha256_val=sha256.hexdigest()
+    return sha1_val, sha256_val
+
+def Unzip(app_path, extrac_path):
+    print "[INFO] Unzipping"
+    try:
+        files=[]
+        with zipfile.ZipFile(app_path, "r") as z:
+                z.extractall(extrac_path)
+                files=z.namelist()
+        return files
+    except Exception as e:
+        print "\n[ERROR] Unzipping Error - "+str(e)
+        if platform.system()=="Windows":
+            print "\n[INFO] Not yet Implemented."
+        else:
+            print "\n[INFO] Using the Default OS Unzip Utility."
+            try:
+                subprocess.Popen(['unzip', '-o', '-q', app_path, '-d', extrac_path])
+                dat=subprocess.check_output(['unzip','-qq','-l',app_path])
+                dat=dat.split('\n')
+                x=['Length   Date   Time   Name']
+                x=x+dat
+                return x
+            except Exception as e1:
+                print "\n[ERROR] Unzipping Error - "+str(e1)
