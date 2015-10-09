@@ -6,6 +6,7 @@ db_file = tempfile.NamedTemporaryFile()
 BASE_DIR = os.getcwd()
 UPLOADS = os.path.join(BASE_DIR, 'uploads')
 LOGS_FOLDER = os.path.join(BASE_DIR, 'logs')
+TOOLS_DIR = os.path.join(BASE_DIR, 'tools')
 
 
 class Config(object):
