@@ -6,16 +6,18 @@
     <div class="jumbotron">
         <h1>mobsec - a security framework for pentesting Android apps</h1>
     </div>
-
-    <form id="upload_apk" action="/" method="POST" enctype="multipart/form-data">
-        <span class="btn btn-success fileinput-button">
-            <span>Select .apk</span>
-            <input id="apk" type="file" name="files[]" />
-        </span>
-        <button type="submit" class="btn btn-primary start">
-            <span>Upload</span>
-        </button>
-    </form>
+    
+    <div style="text-align: center;">
+        <form id="upload_apk" action="/" method="POST" enctype="multipart/form-data">
+            <span class="btn btn-success btn-lg fileinput-button">
+                <span>Select .apk</span>
+                <input id="apk" type="file" name="files[]" />
+            </span>
+            <button type="submit" class="btn btn-primary btn-lg start">
+                <span>Upload</span>
+            </button>
+        </form>
+    </div>
 
 {%endblock%}
 
