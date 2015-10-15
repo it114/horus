@@ -12,16 +12,20 @@ import shutil
 import platform
 import ast
 import sys
+import json
+import requests
 from xml.dom import minidom
 from log import logger
 from settings import BASE_DIR, UPLOADS_DIR, TOOLS_DIR, OUTPUT_DIR
-from utils import get_file_paths
+from utils import get_file_paths, encode_multipart_formdata, get_content_type
 
 
 def decompile(name):
     # search through the uploads folder
-	file = glob.glob(os.path.join(UPLOADS, name+'.apk')[0]
-    fire_jadx = subprocess.Popen(["jadx", "-d", "out", os.path.join(OUTPUT_DIR, name), file], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	apk = os.path.join(UPLOADS, name+'.apk')
+    fire_jadx = subprocess.Popen(["jadx", "-d", "out", \
+                                  os.path.join(OUTPUT_DIR, name), apk],
+                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     # set to communicate with the logger
     stdout, stderr = fire_jadx.communicate()
     if stdout:
@@ -137,4 +141,10 @@ def get_strings(name, app_dir):
     strings = strings[1:-1].split(",")
     return strings
 
+def virustotal_check(app_name):
+    """
+    Upload the file to VirusTotal and get the results (via the API)
+    :rtype: JSON
+    """
+    return 1
 
