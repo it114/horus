@@ -1,10 +1,10 @@
 import os
-import base64
 from flask import Blueprint, render_template, flash, request, redirect, url_for
 from werkzeug import secure_filename
 from mobsec.extensions import cache
 from mobsec.settings import UPLOADS_DIR
 from mobsec.utils import allowed_file
+from mobsec.controllers.static_analyzer import StaticAnalyzer
 
 
 main = Blueprint('main', __name__)
@@ -38,4 +38,7 @@ def upload():
 
 @main.route("/dashboard", methods=['GET'])
 def dashboard():
+    if 'app_name' in request.args:
+        app_name = request.args["app_name"]
+
     return render_template('dashboard.html')

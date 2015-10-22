@@ -1,13 +1,16 @@
+import urllib
+import urllib2
 import subprocess
 import io
 import re
 import os
+import time
 import hashlib
-import html.escape
+from html import escape
 from xml.dom import minidom
-from log import logger
-from settings import UPLOADS_DIR, TOOLS_DIR, OUTPUT_DIR
-from utils import get_file_paths, post_multipart
+from mobsec.log import logger
+from mobsec.settings import UPLOADS_DIR, TOOLS_DIR, OUTPUT_DIR
+from mobsec.utils import get_file_paths, post_multipart
 
 
 class StaticAnalyzer(object):
@@ -82,7 +85,7 @@ class StaticAnalyzer(object):
         for file in files:
             extension = file.split('.')[-1]
             if re.search("cer|pem|cert|crt|pub|key|pfx|p12", extension):
-                certs += html.escape(file) + "</br>"
+                certs += escape(file) + "</br>"
         if len(certs) > 1:
             certs = "<tr><td>Certificate/Key Files Hardcoded inside the App.</td><td>" + \
                 certs + "</td><tr>"
@@ -114,7 +117,7 @@ class StaticAnalyzer(object):
                 elif f.lower().endswith(".dsa"):
                     cert_file = os.path.join(cert, f)
         args = ['java', '-jar', printer, cert_file]
-        info = html.escape(subprocess.check_output(args)).replace('\n', '</br>')
+        info = escape(subprocess.check_output(args)).replace('\n', '</br>')
         return info
 
     def get_strings(self):
@@ -142,5 +145,14 @@ class StaticAnalyzer(object):
         selector = "https://www.virustotal.com/vtapi/v2/file/scan"
         fields = [("apikey", os.environ("VIRUSTOTAL_API"))]
         files = [("file", "app.txt", app)]
-        json_resp = post_multipart(host, selector, fields, files)
-        return json_resp
+        json = post_multipart(host, selector, fields, files)
+        # this will be used for later requests
+        time.sleep(30)
+        url = "https://www.virustotal.com/vtapi/v2/file/report"
+        parameters = {"resource": "json['scan_id']", "apikey": "os.environ('VIRUSTOTAL_API')"}
+        data = urllib.urlencode(parameters)
+        req = urllib2.Request(url, data)
+        response = json.loads(urllib2.urlopen(req).read())
+
+        return response["scans"]
+
