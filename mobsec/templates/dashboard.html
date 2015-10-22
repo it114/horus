@@ -4,18 +4,24 @@
 
 {%block body%}
     <div class="row">
-        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2">
-          <h1 class="page-header">Dashboard</h1>
+        <div class="">
+            <h1 class="page-header" style='text-align: center;'><b>Dashboard</b></h1>
         </div>
-        <div class="col-sm-3 col-md-2 sidebar">
-          <ul class="nav nav-sidebar nav-stacked">
-            <li class="active"><a href="#">Overview <span class="sr-only">(current)</span></a></li>
-            <li><a href="#">Static Analysis</a></li>
-            <li><a href="#">Dynamic Analysis</a></li>
-            <li><a href="#">Export</a></li>
-          </ul>
+    
+        <div class="col-md-6 row">
+            <div class="panel panel-default">
+                <div class="panel-heading"></div>
+                <div class="panel-body">
+                    <div class="list-group">
+                        <p><span class="label label-primary">Name</span>{{ name }}</p>
+                        <p><span class="label label-primary">Size</span>{{ size }}</p>
+                        <p><span class="label label-primary">MD5</span>{{ md5 }}</p>
+                        <p><span class="label label-primary">SHA1</span>{{ sha1 }}</p>
+                        <p><span class="label label-primary">SHA256</span>{{ sha256 }}</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
-    {%endblock%}
+{%endblock%}
 

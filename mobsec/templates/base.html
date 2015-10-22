@@ -41,17 +41,21 @@
         </div>
 
         <div class="container">
+            <!-- flash any messages we may have -->  
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
+                    <ul class=flashes>
                     {% for category, message in messages %}
-                        <div class="alert alert-{{ category }} alert-dismissible" role="alert">
-                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                          {{ message }}
-                        </div>
+                    <div {% if category == 'message' %} class="alert alert-success alert-dismissable" {% else %} class="alert alert-{{category}} alert-dismissable" {%endif%} role="alert">
+                        <button type="button" class="close" data-dismiss="alert">
+                        <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                        </button>
+                        {{message}}
+                    </div>
                     {% endfor %}
+                    </ul>
                 {% endif %}
             {% endwith %}
-
             {% block body %}
             {% endblock %}
         </div>
