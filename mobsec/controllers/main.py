@@ -30,7 +30,7 @@ def upload():
             app_name = secure_filename(apk.filename)
             apk.save(os.path.join(UPLOADS_DIR, app_name))
             return redirect(url_for(".dashboard",
-                                    apk=base64.b64encode(app_name)))
+                                    apk=app_name))
         else:
             flash("Illegal extension!")
             return redirect(url_for(".home"))
@@ -39,5 +39,3 @@ def upload():
 @main.route("/dashboard", methods=['GET'])
 def dashboard():
     return render_template('dashboard.html')
-
-
