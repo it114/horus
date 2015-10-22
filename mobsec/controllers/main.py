@@ -69,6 +69,6 @@ class ScanAPI(Resource):
         app_name = request.form['apk']
         scan_obj = StaticAnalyzer(app_name)
 
-        return {'scan': scan_obj.size()}
+        return scan_obj.info()
 
 api.add_resource(ScanAPI, '/api/scan')

@@ -2,15 +2,17 @@ import urllib
 import urllib2
 import subprocess
 import io
-import re
 import os
+import sys
 import time
 import hashlib
-from html import escape
-from xml.dom import minidom
 from mobsec.log import logger
 from mobsec.settings import UPLOADS_DIR, TOOLS_DIR, OUTPUT_DIR
-from mobsec.utils import get_file_paths, post_multipart
+from mobsec.utils import post_multipart
+
+# Adjust PYTHONPATH
+sys.path.append(os.path.join(TOOLS_DIR, 'androguard/'))
+import androlyze as anz
 
 
 class StaticAnalyzer(object):
@@ -23,10 +25,35 @@ class StaticAnalyzer(object):
         self.app_dir = os.path.join(OUTPUT_DIR, self.name.strip(".apk"))
         self.apk = os.path.join(UPLOADS_DIR, self.name)
 
+    def info(self):
+        a, d, dx = anz.AnalyzeAPK(self.apk, decompiler='dex2jar')
+        output = {
+            "is_valid": a.is_valid_APK(),
+            "package_name": a.get_package(),
+            "target_sdk_version": a.get_target_sdk_version(),
+            "min_sdk_version": a.get_min_sdk_version(),
+            "max_sdk_version": a.get_max_sdk_version(),
+            "libraries": a.get_libraries(),
+            "detailed_permissions": a.get_details_permissions(),
+            "file_types": a.get_files_types(),
+            "files": a.get_files(),
+            "version_name": a.get_androidversion_name(),
+            "version_code": a.get_androidversion_code(),
+            "permissions": a.permissions,
+            "activities": a.get_activities(),
+            "services": a.get_services(),
+            "providers": a.get_providers(),
+            "receivers": a.get_receivers(),
+            "main_activity": a.get_main_activity(),
+            "strings": d.get_strings()
+        }
+
+        return output
+
     def decompile(self):
         # search through the uploads folder
         jadx = os.path.join(TOOLS_DIR, 'jadx/bin/jadx')
-        args = [jadx, "-d", "out", self.app_dir, self.apk]
+        args = [jadx, "-d", self.app_dir, self.apk]
         fire_jadx = subprocess.Popen(args, stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT)
         # set to communicate with the logger
@@ -35,33 +62,6 @@ class StaticAnalyzer(object):
             logger.info(stdout)
         if stderr:
             logger.error(stderr)
-
-    def manifest_view(self):
-        try:
-            # do not check for the hash just yet (maybe in future)
-            manifest_data = self.read_manifest()
-            return manifest_data
-        except Exception as e:
-            logger.error("[*]Viewing AndroidManifest.xml - " + str(e))
-            return
-
-    def read_manifest(self):
-        logger.info("[*]Getting the manifest from decompiled source..")
-        manifest = os.path.join(self.app_dir, "AndroidManifest.xml")
-        with io.open(manifest, mode='r', encoding="utf8", errors="ignore") as manifest_file:
-            data = manifest_file.read()
-        return data
-
-    def get_manifest(self):
-        manifest = self.read_manifest().replace("\n", "")
-        try:
-            logger.info("[*]Parsing AndroidManifest.xml...")
-            parsed_manifest = minidom.parseString(manifest)
-        except Exception as e:
-            logger.error("[*] Parsing AndroidManifest.xml - " + str(e))
-            parsed_manifest = minidom.parseString(r'<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="Failed"  android:versionName="Failed" package="Failed"  platformBuildVersionCode="Failed" platformBuildVersionName="Failed XML Parsing" ></manifest>')
-            logger.warn("[*] Using fake XML to continue the analysis...")
-        return parsed_manifest
 
     def size(self):
         return round(float(os.path.getsize(self.apk)) / (1024 * 1024), 2)
@@ -81,63 +81,6 @@ class StaticAnalyzer(object):
         sha1_val = sha1.hexdigest()
         sha256_val = sha256.hexdigest()
         return {"sha1": sha1_val, "sha256": sha256_val}
-
-    def get_cert(self):
-        logger.info("[*] Getting hardcoded certificates...")
-        files = get_file_paths(self.app_dir)
-        # an empty string
-        certs = ''
-        for file in files:
-            extension = file.split('.')[-1]
-            if re.search("cer|pem|cert|crt|pub|key|pfx|p12", extension):
-                certs += escape(file) + "</br>"
-        if len(certs) > 1:
-            certs = "<tr><td>Certificate/Key Files Hardcoded inside the App.</td><td>" + \
-                certs + "</td><tr>"
-        return certs
-
-    @staticmethod
-    def str_permissions(permissions):
-        logger.info("[*] Formatting permissions...")
-        perm_str = ''
-        for each in permissions:
-            perm_str += '<tr><td>' + each + '</td>'
-            for inner in permissions[each]:
-                perm_str += '<td>' + inner + '</td>'
-            perm_str += '</tr>'
-        perm_str = perm_str.replace('dangerous', '<span class="label label-danger">dangerous</span>').replace('normal', '<span class="label label-info">normal</span>').replace('signatureOrSystem','<span class="label label-warning">SignatureOrSystem</span>').replace('signature','<span class="label label-success">signature</span>')
-        return perm_str
-
-    def cert_info(self):
-        logger.info("[*] Reading signer certificate...")
-        cert = os.path.join(self.app_dir, 'META-INF/')
-        printer = os.path.join(TOOLS_DIR, 'CertPrint.jar')
-        files = [f for f in os.listdir(cert) if os.path.isfile(os.path.join(cert, f))]
-        if "CERT.RSA" in files:
-            cert_file = os.path.join(cert, "CERT.RSA")
-        else:
-            for f in files:
-                if f.lower().endswith(".rsa"):
-                    cert_file = os.path.join(cert, f)
-                elif f.lower().endswith(".dsa"):
-                    cert_file = os.path.join(cert, f)
-        args = ['java', '-jar', printer, cert_file]
-        info = escape(subprocess.check_output(args)).replace('\n', '</br>')
-        return info
-
-    def get_strings(self):
-        logger.info("[*] Extracting strings from .apk...")
-        strings_tool = os.path.join(TOOLS_DIR, 'strings_from_apk.jar')
-        args = ['java', '-jar', strings_tool, self.apk, self.app_dir]
-        subprocess.call(args)
-        strings = ''
-        try:
-            with io.open(self.app_dir + 'strings.json', mode='r', encoding="utf8", errors="ignore") as file:
-                strings += file.read()
-        except:
-            pass
-        strings = strings[1:-1].split(",")
-        return strings
 
     def virustotal_check(self):
         """
