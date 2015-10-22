@@ -21,4 +21,4 @@ class StaticAnalyzerAndroid(db.Model):
         self.sha256 = sha256
 
     def __repr__(self):
-        return self.title
+        return self.name

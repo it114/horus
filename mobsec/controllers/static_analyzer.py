@@ -16,14 +16,19 @@ from mobsec.utils import get_file_paths, post_multipart
 class StaticAnalyzer(object):
     def __init__(self, name):
         self.name = name
+        # create a dir based on name
+        if not os.path.exists(os.path.join(OUTPUT_DIR, self.name.strip(".apk"))):
+            os.makedirs(os.path.join(OUTPUT_DIR, self.name.strip(".apk")))
+
         self.app_dir = os.path.join(OUTPUT_DIR, self.name.strip(".apk"))
         self.apk = os.path.join(UPLOADS_DIR, self.name)
 
     def decompile(self):
         # search through the uploads folder
-        args = ["jadx", "-d", "out", self.app_dir, self.apk]
+        jadx = os.path.join(TOOLS_DIR, 'jadx/bin/jadx')
+        args = [jadx, "-d", "out", self.app_dir, self.apk]
         fire_jadx = subprocess.Popen(args, stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT)
+                                     stderr=subprocess.STDOUT)
         # set to communicate with the logger
         stdout, stderr = fire_jadx.communicate()
         if stdout:
@@ -59,7 +64,7 @@ class StaticAnalyzer(object):
         return parsed_manifest
 
     def size(self):
-        return round(float(os.path.getsize(self.app_dir)) / (1024 * 1024), 2)
+        return round(float(os.path.getsize(self.apk)) / (1024 * 1024), 2)
 
     def hash_generator(self):
         logger.info("[*] Generating hashes..")
@@ -155,4 +160,3 @@ class StaticAnalyzer(object):
         response = json.loads(urllib2.urlopen(req).read())
 
         return response["scans"]
-

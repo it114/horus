@@ -41,7 +41,6 @@ def create_app(object_name, env="dev"):
     # initialize SQLAlchemy
     db.init_app(app)
 
-
     # Import and register the different asset bundles
     assets_env.init_app(app)
     assets_loader = PythonAssetsLoader(assets)

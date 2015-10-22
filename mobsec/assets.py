@@ -4,6 +4,7 @@ common_css = Bundle(
     'css/vendor/bootstrap.min.css',
     'css/vendor/helper.css',
     'css/main.css',
+    'css/dashboard.css',
     filters='cssmin',
     output='public/css/common.css'
 )
