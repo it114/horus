@@ -5,7 +5,6 @@ common_css = Bundle(
     'css/vendor/helper.css',
     'css/main.css',
     'css/dashboard.css',
-    'css/dataTables.bootstrap.css',
     filters='cssmin',
     output='public/css/common.css'
 )
@@ -13,8 +12,6 @@ common_css = Bundle(
 common_js = Bundle(
     'js/vendor/jquery.min.js',
     'js/vendor/bootstrap.min.js',
-    'js/jquery.dataTables.min.js',
-    'js/dataTables.bootstrap.js',
     Bundle(
         'js/main.js',
         filters='jsmin'

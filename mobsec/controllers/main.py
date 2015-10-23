@@ -46,31 +46,32 @@ def upload():
 
 @main.route("/dashboard")
 def dashboard():
-    app_name = str(request.args["apk"] or None).strip('.apk')
-
     # returns a list of analyzed apps
-    apps = StaticAnalyzerAndroid.query.all()
-    if app_name in [str(i) for i in apps]:
-        flash("Already scanned!")
-        logger.warn('Already scanned app.')
-    else:
-        flash("Scan in progress...")
-        # add the app to the DB
-        scan_obj = StaticAnalyzer(request.args["apk"])
-        hashes = scan_obj.hash_generator()
-        new_app = StaticAnalyzerAndroid(app_name,
-                                        scan_obj.size(),
-                                        hashes["md5"],
-                                        hashes["sha1"],
-                                        hashes["sha256"])
-        db.session.add(new_app)
-        db.session.commit()
-    return render_template('dashboard.html')
+    apps = StaticAnalyzerAndroid.query.all() or None
+
+    if request.args:
+        app_name = str(request.args["apk"] or None).strip('.apk')
+        if app_name in [str(i) for i in apps]:
+            flash("Already scanned!")
+            logger.warn('Already scanned app.')
+        else:
+            flash("Scan in progress...")
+            # add the app to the DB
+            scan_obj = StaticAnalyzer(request.args["apk"])
+            hashes = scan_obj.hash_generator()
+            new_app = StaticAnalyzerAndroid(app_name,
+                                            scan_obj.size(),
+                                            hashes["md5"],
+                                            hashes["sha1"],
+                                            hashes["sha256"])
+            db.session.add(new_app)
+            db.session.commit()
+    return render_template('dashboard.html', apps=apps)
 
 
 @main.route("/dashboard/<app_name>")
 def report(app_name):
-    pass
+    return render_template('report.html')
 
 
 class ScanAPI(Resource):

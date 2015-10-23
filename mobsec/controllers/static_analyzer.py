@@ -18,7 +18,8 @@ class StaticAnalyzer(object):
     def __init__(self, name):
         self.name = name
         # create a dir based on name
-        if not os.path.exists(os.path.join(OUTPUT_DIR, self.name.strip(".apk"))):
+        if not os.path.exists(os.path.join(OUTPUT_DIR,
+                                           self.name.strip(".apk"))):
             os.makedirs(os.path.join(OUTPUT_DIR, self.name.strip(".apk")))
 
         self.app_dir = os.path.join(OUTPUT_DIR, self.name.strip(".apk"))
