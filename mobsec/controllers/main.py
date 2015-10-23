@@ -66,10 +66,12 @@ def dashboard():
                                             hashes["sha256"])
             db.session.add(new_app)
             db.session.commit()
-    return render_template('dashboard.html', apps=apps)
+        return redirect(url_for('.report', app_name=app_name))
+    else:
+        return render_template('dashboard.html', apps=apps)
 
 
-@main.route("/dashboard/<app_name>")
+@main.route("/dashboard/<app_name>", methods=['GET'])
 def report(app_name):
     return render_template('report.html')
 
