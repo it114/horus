@@ -9,82 +9,44 @@
         </div>
 
     <div class="row">
-
-      <div class="col-sm-8">
-        <div class="overall">
-            <div class="title"><b>Analyzed apps</b></div>
-          <div class="stage">
-            <ul>
-              {% for app in apps %}
-                    <li>{app.name}</li>
-              {% endfor %}
-            </ul>
-          </div>
+        <div class="col-md-8">
+            <table id="all_apps" class="table">
+            </table>
         </div>
-      </div>
 
-      <div class="col-sm-4">
-        <div class="chart-wrapper">
-          <div class="chart-title">
-            Pageviews by browser (past 5 days)
-          </div>
-          <div class="chart-stage">
-            <div id="chart-02"></div>
-          </div>
-          <div class="chart-notes">
-            Notes go down here
-          </div>
+        <div class="col-md-4">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-long-arrow-right"></i> Bar Graph with Tooltips</h3>
+                </div>
+                <div class="panel-body">
+                <div class="flot-chart">
+                    <div class="flot-chart-content" id="flot-chart-bar">
+                        <img src='https://upload.wikimedia.org/wikipedia/commons/5/55/Composition_of_38th_Parliament.png' height="200" width="200" />
+                    </div>
+                </div>
+                <div class="text-right">
+                    <a href="#">View Details <i class="fa fa-arrow-circle-right"></i></a>
+                </div>
+                </div>
+            </div>
         </div>
-      </div>
-
     </div>
-
-
-    <div class="row">
-
-      <div class="col-sm-4">
-        <div class="chart-wrapper">
-          <div class="chart-title">
-            Impressions by advertiser
-          </div>
-          <div class="chart-stage">
-            <div id="chart-03"></div>
-          </div>
-          <div class="chart-notes">
-            Notes go down here
-          </div>
-        </div>
-      </div>
-
-      <div class="col-sm-4">
-        <div class="chart-wrapper">
-          <div class="chart-title">
-            Impressions by device
-          </div>
-          <div class="chart-stage">
-            <div id="chart-04"></div>
-          </div>
-          <div class="chart-notes">
-            Notes go down here
-          </div>
-        </div>
-      </div>
-
-      <div class="col-sm-4">
-        <div class="chart-wrapper">
-          <div class="chart-title">
-            Impressions by country
-          </div>
-          <div class="chart-stage">
-            <div id="chart-05"></div>
-          </div>
-          <div class="chart-notes">
-            Notes go down here
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
 {%endblock%}
 
+{%block js%}
+<script>
+function allApps() {
+    $.getJSON('/api/apps', function(data) {
+        $('#all_apps').DataTable({
+             data: data,
+             columns: [
+                { title: "Apk" },
+             ]
+        });
+    });
+}
+
+$(document).ready(allApps);
+</script>
+{%endblock%}

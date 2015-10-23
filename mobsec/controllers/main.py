@@ -5,7 +5,7 @@ from mobsec.extensions import cache
 from mobsec.settings import UPLOADS_DIR
 from mobsec.utils import allowed_file
 from mobsec.log import logger
-from mobsec.models import StaticAnalyzerAndroid
+from mobsec.models import db, StaticAnalyzerAndroid
 from mobsec.controllers.static_analyzer import StaticAnalyzer
 
 from flask_restful import Resource, Api
@@ -55,7 +55,22 @@ def dashboard():
         logger.warn('Already scanned app.')
     else:
         flash("Scan in progress...")
+        # add the app to the DB
+        scan_obj = StaticAnalyzer(request.args["apk"])
+        hashes = scan_obj.hash_generator()
+        new_app = StaticAnalyzerAndroid(app_name,
+                                        scan_obj.size(),
+                                        hashes["md5"],
+                                        hashes["sha1"],
+                                        hashes["sha256"])
+        db.session.add(new_app)
+        db.session.commit()
     return render_template('dashboard.html')
+
+
+@main.route("/dashboard/<app_name>")
+def report(app_name):
+    pass
 
 
 class ScanAPI(Resource):
@@ -71,4 +86,12 @@ class ScanAPI(Resource):
 
         return scan_obj.info()
 
+
+class GetAllApps(Resource):
+    def get(self):
+        apps = [[str(i)] for i in StaticAnalyzerAndroid.query.all()]
+
+        return apps
+
 api.add_resource(ScanAPI, '/api/scan')
+api.add_resource(GetAllApps, '/api/apps')
