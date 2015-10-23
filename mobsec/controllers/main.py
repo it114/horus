@@ -83,8 +83,8 @@ class ScanAPI(Resource):
     def post(self):
         app_name = request.form['apk']
         scan_obj = StaticAnalyzer(app_name)
-
-        return scan_obj.info()
+        return scan_obj.genCFG()
+        # return scan_obj.info()
 
 
 class GetAllApps(Resource):
