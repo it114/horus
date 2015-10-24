@@ -17,17 +17,19 @@ from mobsec.controllers.stadyna_analyser import StadynaAnalyser
 class StaticAnalyzer(object):
     def __init__(self, name):
         self.name = name
+        out = os.path.join(OUTPUT_DIR, self.name.strip(".apk"))
         # create a dir based on name
-        if not os.path.exists(os.path.join(OUTPUT_DIR,
-                                           self.name.strip(".apk"))):
-            os.makedirs(os.path.join(OUTPUT_DIR, self.name.strip(".apk")))
-
+        if not os.path.exists(out):
+            os.makedirs(out)
         self.app_dir = os.path.join(OUTPUT_DIR, self.name.strip(".apk"))
         self.apk = os.path.join(UPLOADS_DIR, self.name)
 
     def info(self):
         a, d, dx = anz.AnalyzeAPK(self.apk, decompiler='dex2jar')
         output = {
+            "name": self.name,
+            "size": self.size(),
+            "hashes": self.hash_generator(),
             "is_valid": a.is_valid_APK(),
             "package_name": a.get_package(),
             "target_sdk_version": a.get_target_sdk_version(),
@@ -73,6 +75,7 @@ class StaticAnalyzer(object):
 
     def hash_generator(self):
         logger.info("[*] Generating hashes..")
+        md5 = hashlib.md5()
         sha1 = hashlib.sha1()
         sha256 = hashlib.sha256()
         # fixed blocksize
@@ -80,12 +83,14 @@ class StaticAnalyzer(object):
         with io.open(self.apk, mode='rb') as app:
             buf_block = app.read(BLOCKSIZE)
             while len(buf_block) > 0:
+                md5.update(buf_block)
                 sha1.update(buf_block)
                 sha256.update(buf_block)
                 buf_block = app.read(BLOCKSIZE)
+        md5_val = md5.hexdigest()
         sha1_val = sha1.hexdigest()
         sha256_val = sha256.hexdigest()
-        return {"sha1": sha1_val, "sha256": sha256_val}
+        return {"md5": md5_val, "sha1": sha1_val, "sha256": sha256_val}
 
     def virustotal_check(self):
         """

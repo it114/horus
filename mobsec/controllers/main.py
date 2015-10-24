@@ -80,14 +80,12 @@ class ScanAPI(Resource):
     """
     + starts scan
     """
-    def get(self):
-        pass
-
-    def post(self):
-        app_name = request.form['apk']
+    def get(self, app):
+        app_name = app
         scan_obj = StaticAnalyzer(app_name)
-        return scan_obj.genCFG()
-        # return scan_obj.info()
+        # generate CFG
+        #scan_obj.genCFG()
+        return scan_obj.info()
 
 
 class GetAllApps(Resource):
@@ -96,5 +94,5 @@ class GetAllApps(Resource):
 
         return apps
 
-api.add_resource(ScanAPI, '/api/scan')
+api.add_resource(ScanAPI, '/api/scan/<app>')
 api.add_resource(GetAllApps, '/api/apps')

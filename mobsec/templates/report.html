@@ -1,4 +1,45 @@
 {% extends 'base.html' %}
 
 {% block body %}
+    <h3 id="report_head"></h3>
+    
+    <div class="row">
+        <button class="btn btn-info">Static Analysis</button>
+        <button class="btn btn-success">Dynamic Analysis</button>
+    </div>
+    <hr/>
+    <div class="row">
+        <div class="col-md-4">
+            <pre id="fileList"></pre>
+        </div>
+        <div class="col-md-6">
+            <pre id="apkInfo"></pre>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+<script>
+console.log(document.URL)
+var list = document.URL.split("/");
+var app = list[list.length-1];
+
+function populate(d) {
+    console.log(d);
+    $('#report_head').text('Target APK: '+d.name);
+    $.each(d.files, function(id, obj) {
+        $('#fileList').append(d.files[id]+'\n');
+    });
+    $('#apkInfo').append('File: '+d.name+'\n');
+    $('#apkInfo').append('Size: '+d.size+' MB \n');
+}
+
+function getData() {
+    $.getJSON('/api/scan/'+app+'.apk', function(data) {
+        populate(data);
+    })
+}
+
+$(document).ready(getData);
+</script>
 {% endblock %}

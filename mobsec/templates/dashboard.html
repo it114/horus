@@ -5,7 +5,7 @@
 {%block body%}
     <div class="row">
         <div class="">
-            <h1 class="page-header" style='text-align: center;'><b>Dashboard</b></h1>
+            <h1 style='text-align: center;'>Dashboard</h1>
         </div>
 
     <div class="row">
@@ -13,7 +13,7 @@
             <table id="all_apps" class="table">
                 <thead>
                     <tr>
-                        <th> Apk </th>
+                        <th> APK </th>
                         <th> View </th>
                     </tr>
                 </thead>
@@ -21,7 +21,7 @@
                     {% for app in apps %}
                     <tr>
                         <th> {{app}} </th>
-                        <th> <button class="btn btn-success"><a href="/dashboard/{{app}}">View</a></button></th>
+                        <th> <a href="/dashboard/{{app}}"><button class="btn btn-info">View</button></a></th>
                     </tr>
                     {%endfor%}
                 </tbody>
