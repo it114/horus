@@ -1,6 +1,6 @@
 import os
 import logging
-import settings
+from mobsec.settings import LOGS_FOLDER
 
 # create logger
 logger = logging.getLogger('mobsec')
@@ -11,7 +11,7 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 
 # create a file handler
-file_log = logging.FileHandler(os.path.join(settings.LOGS_FOLDER, 'app.log'))
+file_log = logging.FileHandler(os.path.join(LOGS_FOLDER, 'app.log'))
 
 # create formatter
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')

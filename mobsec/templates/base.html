@@ -62,6 +62,42 @@
 
         {% assets "common_js" %}
             <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+            <script>
+                // Function to activate overlay and spinner
+                function addOverlay(selector) {
+                    var div = $(selector);
+                    // Get all the position related stuff
+                    pos = $.extend({
+                    width: div.outerWidth(true), // true to include margin
+                    height: div.outerHeight(true)
+                    }, div.position());
+                    // Add overlay
+                    var overlayDiv = $('<div>', {
+                        class: 'overlay',
+                        css: {
+                            position: 'absolute',
+                            top: pos.top,
+                            left: pos.left,
+                            width: pos.width,
+                            height: pos.height,
+                            backgroundColor: '#FFFFFF',
+                            opacity: 0.50
+                        }
+                    });
+                    var spinnerDiv = $('<div class="three-quarters"></div>');
+                    overlayDiv.appendTo(div);
+                    spinnerDiv.appendTo(overlayDiv);
+                    spinnerDiv.css({
+                        top: overlayDiv.height()/2 - spinnerDiv.height()/2 ,
+                        left: overlayDiv.width()/2 - spinnerDiv.width()/2
+                    });
+                }
+
+                // Function to remove overlay & spinner
+                function removeOverlay(selector) {
+                    $(selector+'.overlay').remove();
+                }
+            </script>
         {% endassets %}
 
         {% block js %}

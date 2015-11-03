@@ -25,7 +25,7 @@ class StaticAnalyzer(object):
         self.apk = os.path.join(UPLOADS_DIR, self.name)
 
     def info(self):
-        a, d, dx = anz.AnalyzeAPK(self.apk, decompiler='dex2jar')
+        a, d, dx = anz.AnalyzeAPK(self.apk, decompiler='dad')
         output = {
             "name": self.name,
             "size": self.size(),
@@ -47,9 +47,7 @@ class StaticAnalyzer(object):
             "providers": a.get_providers(),
             "receivers": a.get_receivers(),
             "main_activity": a.get_main_activity(),
-            "strings": d.get_strings()
         }
-
         return output
 
     def genCFG(self):

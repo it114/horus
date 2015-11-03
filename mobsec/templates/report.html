@@ -3,18 +3,14 @@
 {% block body %}
     <h3 id="report_head"></h3>
     
-    <div class="row">
+    <div class="row" style="text-align: center;">
         <button class="btn btn-info">Static Analysis</button>
         <button class="btn btn-success">Dynamic Analysis</button>
     </div>
     <hr/>
-    <div class="row">
-        <div class="col-md-4">
-            <pre id="fileList"></pre>
-        </div>
-        <div class="col-md-6">
-            <pre id="apkInfo"></pre>
-        </div>
+
+    <div id="report-body">
+
     </div>
 {% endblock %}
 
@@ -28,18 +24,25 @@ function populate(d) {
     console.log(d);
     $('#report_head').text('Target APK: '+d.name);
     $.each(d.files, function(id, obj) {
-        $('#fileList').append(d.files[id]+'\n');
+        $('#report-body').append(d.files[id]+'\n');
     });
-    $('#apkInfo').append('File: '+d.name+'\n');
-    $('#apkInfo').append('Size: '+d.size+' MB \n');
+    $('#name').append(' '+ d.name);
+    $('#size').append(' '+d.size+' MB');
+    $('#md5').append(' '+d.hashes["md5"]);
+    $('#sha1').append(' '+d.hashes["sha1"]);
+    $('#sha256').append(' '+d.hashes["sha256"]);
 }
 
 function getData() {
+    addOverlay('#report-body');
     $.getJSON('/api/scan/'+app+'.apk', function(data) {
+        removeOverlay('#report-body');
         populate(data);
     })
 }
 
-$(document).ready(getData);
+$(document).ready(
+    getData
+);
 </script>
 {% endblock %}

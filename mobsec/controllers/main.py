@@ -47,7 +47,7 @@ def upload():
 @main.route("/dashboard")
 def dashboard():
     # returns a list of analyzed apps
-    apps = StaticAnalyzerAndroid.query.all() or None
+    apps = StaticAnalyzerAndroid.query.all() or []
 
     if request.args:
         app_name = str(request.args["apk"] or None).strip('.apk')
@@ -84,7 +84,7 @@ class ScanAPI(Resource):
         app_name = app
         scan_obj = StaticAnalyzer(app_name)
         # generate CFG
-        #scan_obj.genCFG()
+        scan_obj.genCFG()
         return scan_obj.info()
 
 
