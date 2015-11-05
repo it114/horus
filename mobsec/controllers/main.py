@@ -54,45 +54,52 @@ def dashboard():
         if app_name in [str(i) for i in apps]:
             flash("Already scanned!")
             logger.warn('Already scanned app.')
+            return redirect(url_for('.report', app_name=app_name, status=True))
         else:
             flash("Scan in progress...")
             # add the app to the DB
             scan_obj = StaticAnalyzer(request.args["apk"])
-            hashes = scan_obj.hash_generator()
-            new_app = StaticAnalyzerAndroid(app_name,
-                                            scan_obj.size(),
-                                            hashes["md5"],
-                                            hashes["sha1"],
-                                            hashes["sha256"])
+            #results = scan_obj.scan()
+            new_app = StaticAnalyzerAndroid(app_name, scan_obj.info())
             db.session.add(new_app)
             db.session.commit()
-        return redirect(url_for('.report', app_name=app_name))
-    else:
-        return render_template('dashboard.html', apps=apps)
+            return redirect(url_for('.report', app_name=app_name, status='RunningTrue'))
+    return render_template('dashboard.html', apps=apps)
 
 
-@main.route("/dashboard/<app_name>", methods=['GET'])
-def report(app_name):
+@main.route("/dashboard/<app_name>/scanned=<status>", methods=['GET'])
+def report(app_name, status):
     return render_template('report.html')
-
-
-class ScanAPI(Resource):
-    """
-    + starts scan
-    """
-    def get(self, app):
-        app_name = app
-        scan_obj = StaticAnalyzer(app_name)
-        # generate CFG
-        scan_obj.genCFG()
-        return scan_obj.info()
 
 
 class GetAllApps(Resource):
     def get(self):
         apps = [[str(i)] for i in StaticAnalyzerAndroid.query.all()]
-
         return apps
 
-api.add_resource(ScanAPI, '/api/scan/<app>')
+
+class FetchDB(Resource):
+    def get(self, app):
+        app_name = app
+        # fetch the data from the db
+        fetch = StaticAnalyzerAndroid.query.filter_by(name=app_name).first()
+        return fetch.info
+
+
+class Scan(Resource):
+    def get(self, app):
+        app_name = app
+        scan_obj = StaticAnalyzer(app_name)
+        return scan_obj.scan()
+
+
+class GenerateCFG(Resource):
+    def get(self, app):
+        app_name = app
+        obj = StaticAnalyzer(app_name)
+        graph = obj.genCFG()
+        return ""
+
 api.add_resource(GetAllApps, '/api/apps')
+api.add_resource(Scan, '/api/scan/<app>')
+api.add_resource(FetchDB, '/api/fetch/<app>')

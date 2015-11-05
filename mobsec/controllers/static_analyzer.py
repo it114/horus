@@ -24,6 +24,11 @@ class StaticAnalyzer(object):
         self.app_dir = os.path.join(OUTPUT_DIR, self.name.strip(".apk"))
         self.apk = os.path.join(UPLOADS_DIR, self.name)
 
+    # core method - provides scan as a whole
+    def scan(self):
+        # draw the graph
+        return self.info()
+
     def info(self):
         a, d, dx = anz.AnalyzeAPK(self.apk, decompiler='dad')
         output = {

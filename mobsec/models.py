@@ -8,17 +8,11 @@ class StaticAnalyzerAndroid(db.Model):
 
     id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
     name = db.Column(db.String())
-    size = db.Column(db.Integer())
-    md5 = db.Column(db.String())
-    sha1 = db.Column(db.String())
-    sha256 = db.Column(db.String())
+    info = db.Column(db.PickleType())
 
-    def __init__(self, name, size, md5, sha1, sha256):
+    def __init__(self, name, info):
         self.name = name
-        self.size = size
-        self.md5 = md5
-        self.sha1 = sha1
-        self.sha256 = sha256
+        self.info = info
 
     def __repr__(self):
         return self.name
