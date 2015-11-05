@@ -2,25 +2,125 @@
 
 {% block body %}
     <h3 id="report_head"></h3>
-    
-    <div class="row" style="text-align: center;">
+    <div class="row-fluid" style="text-align: center;">
         <button class="btn btn-info">Static Analysis</button>
         <button class="btn btn-success">Dynamic Analysis</button>
     </div>
     <hr/>
 
-    <div id="report-body">
-        <div class="panel-group">
-            <div class="panel panel-info">
-            <div class="panel-heading">
+    <div class="panel-group" id="report-body">
+        <div class="panel panel-default">
+            <div class="panel-heading" style="padding: 0 15px">
+            <div class="row">
+                <div class="col-md-10" style="padding-left: 15px">
                 <h4 class="panel-title">
-                <a data-toggle="collapse" href="#filelist">Files</a>
+                <a data-toggle="collapse" href="#basicinfo" class="collapsed">
+                <h4 style="padding: 15px">Basic APP and File info<small> APK info</small></h4>
+                </a>
                 </h4>
             </div>
-            <div id="filelist" class="panel-collapse collapse">
-                <div class="panel-body"><pre id="filelist-body"></pre></div>
-                <div class="panel-footer"></div>
             </div>
+            </div>
+            <div id="basicinfo" class="panel-collapse collapse" style="height: 0px; padding-top: 20px; padding-bottom: 20px;">
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col col-lg-6">
+                        <div class="list-group">
+                        <p id="name"><span class="label label-primary">Name</span> </p>
+                        <p id="size"><span class="label label-primary">Size</span> </p>
+                        <p id="md5"><span class="label label-primary">MD5</span> </p>
+                        <p id="sha1"><span class="label label-primary">SHA1</span> </p>
+                        <p id="sha256"><span class="label label-primary">SHA256</span> </p>
+                        </div>
+                    </div>
+                    <div class="col col-lg-6">
+                        <div class="list-group">
+                            <p id="package_name"><span class="label label-primary">Package Name</span> </p>
+                            <p id="main_activity"><span class="label label-primary">Main Activity</span> </p>
+                            <p id="target_sdk_version"><span class="label label-primary">Target SDK</span> </p>
+                            <p id="min_sdk_version"><span class="label label-primary">Min SDK</span> </p>
+                            <p id="max_sdk_version"><span class="label label-primary">Max SDK</span> </p>
+                            <p id="version_name"><span class="label label-primary">Android Version Name</span> </p>
+                            <p id="version_code"><span class="label label-primary">Android Version Code</span> </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading" style="padding: 0 15px">
+            <div class="row">
+                <div class="col-md-10" style="padding-left: 15px">
+                <h4 class="panel-title">
+                <a data-toggle="collapse" href="#filelist" class="collapsed">
+                <h4 style="padding: 15px">Filelist <small>Files in the APK</small></h4>
+                </a>
+                </h4>
+            </div>
+            </div>
+            </div>
+            <div id="filelist" class="panel-collapse collapse" style="height: 0px;">
+            <div class="panel-body"><pre id="filelist-body"></pre></div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading" style="padding: 0 15px">
+            <div class="row">
+                <div class="col-md-10" style="padding-left: 15px">
+                <h4 class="panel-title">
+                <a data-toggle="collapse" href="#permissions" class="collapsed">
+                <h4 style="padding: 15px">Permissions <small>List of permissions in the apk</small></h4>
+                </a>
+                </h4>
+            </div>
+            </div>
+            </div>
+            <div id="permissions" class="panel-collapse collapse" style="height: 0px;">
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>PERMISSION</th>
+                                <th>STATUS</th>
+                                <th>INFO </th>
+                                <th>DESCRIPTION</th>
+                            </tr>
+                        </thead>
+                        <tbody id="permissions-body"> 
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading" style="padding: 0 15px">
+            <div class="row">
+                <div class="col-md-10" style="padding-left: 15px">
+                <h4 class="panel-title">
+                <a data-toggle="collapse" href="#aprsl" class="collapsed">
+                <h4 style="padding: 15px">Activities, Providers, Receivers, Services and Libraries<small></small></h4>
+                </a>
+                </h4>
+            </div>
+            </div>
+            </div>
+            <div id="aprsl" class="panel-collapse collapse" style="height: 0px;">
+            <div class="panel-body">
+                <ul class="nav nav-tabs">
+                    <li><a href="#activities" data-toggle="tab">Activities</a></li>
+                    <li><a href="#providers" data-toggle="tab">Providers</a></li>
+                    <li><a href="#receivers" data-toggle="tab">Receivers</a></li>
+                    <li><a href="#services" data-toggle="tab">Services</a></li>
+                    <li><a href="#libraries" data-toggle="tab">Libraries</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane" id="activities"><pre></pre></div>
+                    <div class="tab-pane" id="providers"><pre></pre></div>
+                    <div class="tab-pane" id="receivers"><pre></pre></div>
+                    <div class="tab-pane" id="services"><pre></pre></div>
+                    <div class="tab-pane" id="libraries"><pre></pre></div>
+                </div>
             </div>
         </div>
     </div>
@@ -28,18 +128,47 @@
 
 {% block js %}
 <script>
-console.log(document.URL)
 var list = document.URL.split("/");
 var app = list[list.length-2];
-var status = list[list.length-1].indexOf("True")
+var status = list[list.length-1].indexOf("Done" || "Running");
 
 
 function populate(d) {
-    console.log('removing overlay');
+    console.log(d);
     $('.overlay').remove();
-    $('#report_head').text('Target APK: '+d.name);
+    $('#report_head').html('<b><u>Target APK</u></b>: '+d.name);
     $.each(d.files, function(id, obj) {
         $('#filelist-body').append(d.files[id]+'\n');
+    });
+    $('#name').append(d.name);
+    $('#size').append(d.size+" MB");
+    $('#md5').append(d.hashes["md5"]);
+    $('#sha1').append(d.hashes["sha1"]);
+    $('#sha256').append(d.hashes["sha256"]);
+    $('#package_name').append(d.package_name);
+    $('#main_activity').append(d.main_activity);
+    $('#target_sdk_version').append(d.target_sdk_version);
+    $('#min_sdk_version').append(d.min_sdk_version);
+    $('#max_sdk_version').append(d.max_sdk_version || '-');
+    $('#version_name').append(d.version_name);
+    $('#version_code').append(d.version_code);
+    for (var perm in d.detailed_permissions) {
+        $('#permissions-body').append('<tr><td>'+String(perm)+'</td><td><span class="label label-info">'+d.detailed_permissions[perm][0]+'</span></td><td>'+d.detailed_permissions[perm][1]+'</td><td>'+d.detailed_permissions[perm][2]+'</td></tr>');
+    }
+    $.each(d.activities, function(id, obj) {
+        $('#activities pre').append(d.activities[id]+'\n');
+    });
+    $.each(d.providers, function(id, obj) {
+        $('#providers pre').append(d.providers[id]+'\n');
+    });
+    $.each(d.receivers, function(id, obj) {
+        $('#receivers pre').append(d.receivers[id]+'\n');
+    });
+    $.each(d.services, function(id, obj) {
+        $('#services pre').append(d.services[id]+'\n');
+    });
+    $.each(d.libraries, function(id, obj) {
+        $('#libraries pre').append(d.libraries[id]+'\n');
     });
 }
 

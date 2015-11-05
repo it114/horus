@@ -10,18 +10,20 @@
 
     <div class="row">
         <div class="container">
-            <table id="all_apps" class="table">
+            <table id="all_apps" class="table table-responsive">
                 <thead>
                     <tr>
                         <th> APK </th>
+                        <th> Status </th>
                         <th> View </th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for app in apps %}
                     <tr>
-                        <th> {{app}} </th>
-                        <th> <a href="/dashboard/{{app}}"><button class="btn btn-info">View</button></a></th>
+                        <th> {{app.name}} </th>
+                        <th> {{app.status}} </th>
+                        <th> <a href="/dashboard/{{app.name}}/status%3D{{app.status}}"><button class="btn btn-info">View</button></a></th>
                     </tr>
                     {%endfor%}
                 </tbody>
