@@ -54,7 +54,7 @@ def dashboard():
         if app_name in [str(i) for i in apps]:
             flash("Already scanned!")
             logger.warn('Already scanned app.')
-            return redirect(url_for('.report', app_name=app_name, status=True))
+            return redirect(url_for('.report', app_name=app_name, status='Done'))
         else:
             flash("Scan in progress...")
             # add the app to the DB
@@ -63,11 +63,11 @@ def dashboard():
             new_app = StaticAnalyzerAndroid(app_name, scan_obj.info())
             db.session.add(new_app)
             db.session.commit()
-            return redirect(url_for('.report', app_name=app_name, status='RunningTrue'))
+            return redirect(url_for('.report', app_name=app_name, status='Running'))
     return render_template('dashboard.html', apps=apps)
 
 
-@main.route("/dashboard/<app_name>/scanned=<status>", methods=['GET'])
+@main.route("/dashboard/<app_name>/status=<status>", methods=['GET'])
 def report(app_name, status):
     return render_template('report.html')
 
@@ -76,6 +76,18 @@ class GetAllApps(Resource):
     def get(self):
         apps = [[str(i)] for i in StaticAnalyzerAndroid.query.all()]
         return apps
+
+
+class SetStatus(Resource):
+    def post(self, app, status):
+        app_name = app
+        try:
+            row = StaticAnalyzerAndroid.query.filter_by(name=app_name).first()
+            row.status = status
+            db.session.commit()
+            return True
+        except:
+            return False
 
 
 class FetchDB(Resource):
