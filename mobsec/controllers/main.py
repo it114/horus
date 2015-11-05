@@ -60,7 +60,7 @@ def dashboard():
             # add the app to the DB
             scan_obj = StaticAnalyzer(request.args["apk"])
             #results = scan_obj.scan()
-            new_app = StaticAnalyzerAndroid(app_name, scan_obj.info())
+            new_app = StaticAnalyzerAndroid(app_name, scan_obj.info(), status="Running")
             db.session.add(new_app)
             db.session.commit()
             return redirect(url_for('.report', app_name=app_name, status='Running'))
