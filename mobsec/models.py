@@ -8,7 +8,7 @@ class StaticAnalyzerAndroid(db.Model):
 
     id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
     name = db.Column(db.String())
-    info = db.Column(db.PickleType())
+    info = db.Column(db.String())
     status = db.Column(db.String())
 
     def __init__(self, name, info, status):

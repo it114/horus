@@ -209,14 +209,22 @@ var list = document.URL.split("/");
 var app = list[list.length-2];
 var status = list[list.length-1].indexOf("Done" || "Running");
 
+function changeStatus(status) {
+    $.post("/api"+app+"/"+status, function(data) {
+        if (data) {
+            console.log("Changed!");
+        }
+    });
+}
 
 function populate(d) {
     console.log(d);
     $('.overlay').remove();
+    changeStatus("Done");
     $('#report_head').html('<b><u>Target APK</u></b>: '+d.name);
-    $.each(d.files, function(id, obj) {
-        $('#filelist-body').append(d.files[id]+'\n');
-    });
+    for (var file in d.file_types) {
+        $('#filelist-body').append(String(file)+' - '+d.file_types[file]+'\n');
+    }
     $('#name').append(d.name);
     $('#size').append(d.size+" MB");
     $('#md5').append(d.hashes["md5"]);
@@ -254,11 +262,13 @@ function populate(d) {
     });
     $('#cert-body').append(d.cert);
     $('#manifest-anal-body').append(d.manifest_analysis);
-    $('#strings').append(d.strings);
-    $('#native').append(d.misc.Native);
-    $('#reflection').append(d.misc.Reflection);
-    $('#dynamic').append(d.misc.Dynamic);
-    $('#obfuscation').append(d.misc.Obfuscation);
+    $.each(d.strings, function(id, obj) {
+        $('#strings pre').append(d.strings[id]+'\n');
+    })
+    $('#native').append(d.misc.Native || "false");
+    $('#reflection').append(d.misc.Reflection || "false");
+    $('#dynamic').append(d.misc.Dynamic || "false");
+    $('#obfuscation').append(d.misc.Obfuscation || "false");
 }
 
 function getData() {

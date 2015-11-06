@@ -1,4 +1,5 @@
 import os
+import json
 from flask import Blueprint, render_template, flash, request, redirect, url_for
 from werkzeug import secure_filename
 from mobsec.extensions import cache
@@ -60,7 +61,7 @@ def dashboard():
             # add the app to the DB
             scan_obj = StaticAnalyzer(request.args["apk"])
             #results = scan_obj.scan()
-            new_app = StaticAnalyzerAndroid(app_name, scan_obj.info(), status="Running")
+            new_app = StaticAnalyzerAndroid(app_name, json.dumps(scan_obj.info()), status="Running")
             db.session.add(new_app)
             db.session.commit()
             return redirect(url_for('.report', app_name=app_name, status='Running'))
@@ -95,7 +96,7 @@ class FetchDB(Resource):
         app_name = app
         # fetch the data from the db
         fetch = StaticAnalyzerAndroid.query.filter_by(name=app_name).first()
-        return fetch.info
+        return json.loads(fetch.info)
 
 
 class Scan(Resource):
@@ -110,8 +111,9 @@ class GenerateCFG(Resource):
         app_name = app
         obj = StaticAnalyzer(app_name)
         graph = obj.genCFG()
-        return ""
+        return True
 
 api.add_resource(GetAllApps, '/api/apps')
 api.add_resource(Scan, '/api/scan/<app>')
 api.add_resource(FetchDB, '/api/fetch/<app>')
+api.add_resource(SetStatus, '/api/<status>')

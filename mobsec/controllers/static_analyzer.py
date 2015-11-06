@@ -14,7 +14,7 @@ import androlyze as anz
 from androguard.core.bytecodes import apk
 from androguard.core.bytecodes import dvm
 from androguard.core.analysis import analysis
-from mobsec.controllers.stadyna_analyser import StadynaAnalyser
+# from mobsec.controllers.stadyna_analyser import StadynaAnalyser
 
 
 class StaticAnalyzer(object):
@@ -52,12 +52,12 @@ class StaticAnalyzer(object):
                     certfile = os.path.join(cert, f)
 
         args = ['java', '-jar', CP_PATH, certfile]
-        data = ''
         data = subprocess.check_output(args).replace('\n', '</br>')
         return data
 
     def info(self):
         a, d, dx = anz.AnalyzeAPK(self.apk, decompiler='dad')
+        # logger.warn(a.get_files_types())
         output = {
             "name": self.name,
             "size": self.size(),
@@ -73,7 +73,7 @@ class StaticAnalyzer(object):
             "detailed_permissions": a.get_details_permissions(),
             "file_types": a.get_files_types(),
             "files": a.get_files(),
-            "strings": self.get_strings(),
+            "strings": d.get_strings(),
             "version_name": a.get_androidversion_name(),
             "version_code": a.get_androidversion_code(),
             "permissions": a.permissions,
@@ -85,11 +85,12 @@ class StaticAnalyzer(object):
             "misc": self.display_dvm_info()
         }
         return output
-
+    """
     def genCFG(self):
         result = StadynaAnalyser()
         result.makeFileAnalysis(self.apk)
         result.performFinalInfoSave(self.app_dir, self.name)
+    """
 
     def display_dvm_info(self):
         a = apk.APK(self.apk)
@@ -100,7 +101,7 @@ class StaticAnalyzer(object):
                 "Dynamic": analysis.is_dyn_code(vmx),
                 "Reflection": analysis.is_reflection_code(vmx),
                 "Obfuscation": analysis.is_ascii_obfuscation(vm),
-            }
+                }
 
     def manifest_analysis(self, mfxml, mainact):
         logger.info("Manifest Analysis Started")
