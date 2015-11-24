@@ -4,13 +4,13 @@ import os
 from flask.ext.migrate import Migrate, MigrateCommand
 from flask.ext.script import Manager, Server
 from flask.ext.script.commands import ShowUrls, Clean
-from mobsec import create_app
-from mobsec.models import db
+from webapp import create_app
+from webapp.models import db
 
 # default to dev config because no one should use this in
 # production anyway
 env = os.environ.get('APPNAME_ENV', 'dev')
-app = create_app('mobsec.settings.%sConfig' % env.capitalize(), env=env)
+app = create_app('webapp.settings.%sConfig' % env.capitalize(), env=env)
 
 migrate = Migrate(app, db)
 
@@ -20,10 +20,11 @@ manager.add_command("show-urls", ShowUrls())
 manager.add_command("clean", Clean())
 manager.add_command("db", MigrateCommand)
 
+
 @manager.shell
 def make_shell_context():
     """ Creates a python REPL with several default imports
-        in the context of the app
+    in the context of the app
     """
 
     return dict(app=app, db=db)
