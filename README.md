@@ -3,7 +3,7 @@
 A mobile pentesting framework written in Python. It is intended to have to 2 major components:
 
  - [x] Static Analysis
- - [  ] Dynamic Analysis
+ - [ ] Dynamic Analysis
 
 
 ## CREDITS
