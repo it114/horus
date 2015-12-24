@@ -33,12 +33,12 @@ def getSha256(f, block_size=2**8):
     """
 
     sha256 = hashlib.sha256()
-    f = open(f, 'rb')
-    while True:
-        data = f.read(block_size)
-        if not data:
-            break
-        sha256.update(data)
+    with open(f, 'rb'):
+        while True:
+            data = f.read(block_size)
+            if not data:
+                break
+            sha256.update(data)
     return sha256.hexdigest()
 
 
