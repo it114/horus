@@ -60,7 +60,7 @@ def dashboard():
             flash("Scan in progress...")
             # add the app to the DB
             scan_obj = StaticAnalyzer(request.args["apk"])
-            #results = scan_obj.scan()
+            # results = scan_obj.scan()
             new_app = StaticAnalyzerAndroid(app_name, json.dumps(scan_obj.info()), status="Running")
             db.session.add(new_app)
             db.session.commit()
@@ -81,15 +81,13 @@ def graph(app):
 @main.route("/cfg/<path:filename>")
 @crossdomain(origin="*")
 def fetch_gexf(filename):
-    print "yay!"
     app = filename.split(".apk_final")[0]
-    print app
     return send_from_directory(os.path.join(OUTPUT_DIR, app), filename)
 
 
 class GetAllApps(Resource):
     def get(self):
-        apps = [[str(i)] for i in StaticAnalyzerAndroid.query.all()]
+        apps = [[str(i)] for i in db.session(StaticAnalyzerAndroid).all()]
         return apps
 
 
@@ -97,7 +95,7 @@ class SetStatus(Resource):
     def post(self, app, status):
         app_name = app
         try:
-            row = StaticAnalyzerAndroid.query.filter_by(name=app_name).first()
+            row = db.session(StaticAnalyzerAndroid).filter_by(name=app_name).first()
             row.status = status
             db.session.commit()
             return True
@@ -109,14 +107,13 @@ class FetchDB(Resource):
     def get(self, app):
         app_name = app
         # fetch the data from the db
-        fetch = StaticAnalyzerAndroid.query.filter_by(name=app_name).first()
+        fetch = db.session(StaticAnalyzerAndroid).filter_by(name=app_name).first()
         return json.loads(fetch.info)
 
 
 class Scan(Resource):
     def get(self, app):
-        app_name = app
-        scan_obj = StaticAnalyzer(app_name)
+        scan_obj = StaticAnalyzer(app)
         scan_obj.genCFG()
         return scan_obj.scan()
 
