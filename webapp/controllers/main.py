@@ -48,7 +48,7 @@ def upload():
 @main.route("/dashboard")
 def dashboard():
     # returns a list of analyzed apps
-    apps = StaticAnalyzerAndroid.query.all() or []
+    apps = db.session.query(StaticAnalyzerAndroid).all() or []
 
     if request.args:
         app_name = str(request.args["apk"] or None).strip('.apk')
