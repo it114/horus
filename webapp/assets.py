@@ -2,7 +2,6 @@ from flask_assets import Bundle
 
 common_css = Bundle(
     'css/vendor/bootstrap.min.css',
-    'css/vendor/bootstrap-theme.min.css',
     'css/vendor/helper.css',
     'css/span-fix.css',
     'css/main.css',
