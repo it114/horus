@@ -27,23 +27,37 @@ class StaticAnalyzer(object):
         self.app_dir = os.path.join(OUTPUT_DIR, self.name.strip(".apk"))
         self.apk = os.path.join(UPLOADS_DIR, self.name)
 
+    def init(self):
+        # step 1:Extract
+        logger.debug("Unzipping the APK")
+        self.unzip()
+        return {}
+
     # core method - provides scan as a whole
     def scan(self):
-        # draw the graph
-        self.genCFG()
         return self.info()
 
     def cert_info(self):
-        logger.info("Extracting certificate info from the APK file...")
-        try:
-            data = subprocess.check_output('unzip -p %s META-INF/CERT.RSA |openssl pkcs7 -inform DER -noout -print_certs -text' % self.apk)
-        except Exception as e1:
-            logger.error("\n[ERROR] No certificate found - "+str(e1))
-        return data.replace('\n', '</br>')
+        logger.info("Extracting certificate...")
+        certdir = os.path.join(self.app_dir, 'META-INF')
+        if "CERT.RSA" in os.listdir(certdir):
+            certfile = os.path.join(certdir, "CERT.RSA")
+        else:
+            for file in os.listdir(certdir):
+                if file.lower().endswith(".rsa"):
+                    certfile = os.path.join(certdir, file)
+                    break
+                elif file.lower().endswith(".dsa"):
+                    certfile = os.path.join(certdir, file)
+                else:
+                    certfile = ''
+        data = subprocess.Popen('openssl pkcs7 -inform DER -noout -print_certs -text -in %s' % certfile,
+                                shell=True,
+                                stdout=subprocess.PIPE).communicate()[0]
+        return data.replace('\n', '<br>')
 
     def info(self):
         a, d, dx = anz.AnalyzeAPK(self.apk, decompiler='dad')
-        # logger.warn(a.get_files_types())
         output = {
             "name": self.name,
             "size": self.size(),
@@ -85,8 +99,7 @@ class StaticAnalyzer(object):
         return {"Native": analysis.is_native_code(vmx),
                 "Dynamic": analysis.is_dyn_code(vmx),
                 "Reflection": analysis.is_reflection_code(vmx),
-                "Obfuscation": analysis.is_ascii_obfuscation(vm),
-                }
+                "Obfuscation": analysis.is_ascii_obfuscation(vm)}
 
     def manifest_analysis(self, mfxml, mainact):
         logger.info("Manifest Analysis Started")
@@ -257,8 +270,13 @@ class StaticAnalyzer(object):
         stdout, stderr = fire_jadx.communicate()
         if stdout:
             logger.info(stdout)
+	    return True
         if stderr:
             logger.error(stderr)
+	    return False
+
+    def unzip(self):
+        os.system('unzip -d %s %s' % (self.app_dir, self.apk))
 
     def size(self):
         return round(float(os.path.getsize(self.apk)) / (1024 * 1024), 2)

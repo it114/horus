@@ -55,21 +55,20 @@ def dashboard():
         if app_name in [str(i) for i in apps]:
             flash("Already scanned!")
             logger.warn('Already scanned app.')
-            return redirect(url_for('.report', app_name=app_name, status='Done'))
+            return redirect(url_for('.report', app_name=app_name))
         else:
             flash("Scan in progress...")
             # add the app to the DB
             scan_obj = StaticAnalyzer(request.args["apk"])
-            # results = scan_obj.scan()
-            new_app = StaticAnalyzerAndroid(app_name, json.dumps(scan_obj.info()), status="Running")
+            new_app = StaticAnalyzerAndroid(app_name, json.dumps(scan_obj.init()))
             db.session.add(new_app)
             db.session.commit()
-            return redirect(url_for('.report', app_name=app_name, status='Running'))
+            return redirect(url_for('.report', app_name=app_name))
     return render_template('dashboard.html', apps=apps)
 
 
-@main.route("/dashboard/<app_name>/status=<status>", methods=['GET'])
-def report(app_name, status):
+@main.route("/dashboard/<app_name>", methods=['GET'])
+def report(app_name):
     return render_template('report.html')
 
 
@@ -87,15 +86,14 @@ def fetch_gexf(filename):
 
 class GetAllApps(Resource):
     def get(self):
-        apps = [[str(i)] for i in db.session(StaticAnalyzerAndroid).all()]
+        apps = [[str(i)] for i in db.session.query(StaticAnalyzerAndroid).all()]
         return apps
 
 
 class SetStatus(Resource):
     def post(self, app, status):
-        app_name = app
         try:
-            row = db.session(StaticAnalyzerAndroid).filter_by(name=app_name).first()
+            row = db.session.query(StaticAnalyzerAndroid).filter_by(name=app).first()
             row.status = status
             db.session.commit()
             return True
@@ -105,20 +103,22 @@ class SetStatus(Resource):
 
 class FetchDB(Resource):
     def get(self, app):
-        app_name = app
         # fetch the data from the db
-        fetch = db.session(StaticAnalyzerAndroid).filter_by(name=app_name).first()
+        fetch = db.session.query(StaticAnalyzerAndroid).filter_by(name=app).first()
         return json.loads(fetch.info)
 
 
 class Scan(Resource):
     def get(self, app):
-        scan_obj = StaticAnalyzer(app)
-        scan_obj.genCFG()
-        return scan_obj.scan()
+        app_name = app
+        scan_obj = StaticAnalyzer(app_name)
+        out = scan_obj.scan()
+        data = db.session.query(StaticAnalyzerAndroid).filter_by(name=app_name.strip('.apk')).first()
+        data.info = json.dumps(out)
+        db.session.commit()
+        return out
 
 
 api.add_resource(GetAllApps, '/api/apps')
 api.add_resource(Scan, '/api/scan/<app>')
 api.add_resource(FetchDB, '/api/fetch/<app>')
-api.add_resource(SetStatus, '/api/<status>')

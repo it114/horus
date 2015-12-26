@@ -229,21 +229,11 @@
 {% block js %}
 <script>
 var list = document.URL.split("/");
-var app = list[list.length-2];
-var status = list[list.length-1].indexOf("Done" || "Running");
-
-function changeStatus(status) {
-    $.post("/api"+app+"/"+status, function(data) {
-        if (data) {
-            console.log("Changed!");
-        }
-    });
-}
+var app = list[list.length-1];
 
 function populate(d) {
     console.log(d);
     $('.overlay').remove();
-    changeStatus("Done");
     $('#report_head').html('<b><u>Target APK</u></b>: '+d.name);
     for (var file in d.file_types) {
         $('#filelist-body').append(String(file)+' - '+d.file_types[file]+'\n');
@@ -295,27 +285,13 @@ function populate(d) {
     $('#reflection').append(d.misc.Reflection || "false");
     $('#dynamic').append(d.misc.Dynamic || "false");
     $('#obfuscation').append(d.misc.Obfuscation || "false");
-
-     sigma.parsers.json('data.json', {
-        container: 'cfg-body',
-        settings: {
-          defaultNodeColor: '#ec5148'
-        }
-      });
 }
 
 function getData() {
     addOverlay('#report-body');
-    if (status > -1) {
-        //fetch the results from the DB
-        $.getJSON('/api/fetch/'+app, function(data) {
-            populate(data);
-        })
-    } else {
-        $.getJSON('/api/scan/'+app+'.apk', function(data) {
-            populate(data);
-        })
-    }
+    $.getJSON('/api/scan/'+app+'.apk', function(data) {
+        populate(data);
+    })
 }
 
 $( document ).ready(getData);
