@@ -34,27 +34,12 @@ class StaticAnalyzer(object):
         return self.info()
 
     def cert_info(self):
-        logger.info("Unzipping the apk to the app directory...")
+        logger.info("Extracting certificate info from the APK file...")
         try:
-            unzip = subprocess.Popen(["unzip", "-d", self.app_dir, self.apk], stderr=subprocess.STDOUT)
+            data = subprocess.check_output('unzip -p %s META-INF/CERT.RSA |openssl pkcs7 -inform DER -noout -print_certs -text' % self.apk)
         except Exception as e1:
-            logger.error("\n[ERROR] Unzipping Error - "+str(e1))
-        logger.info("Reading Signer Certificate")
-        cert = os.path.join(self.app_dir, 'META-INF')
-        CP_PATH = TOOLS_DIR + '/CertPrint.jar'
-        files = os.listdir(cert)
-        if "CERT.RSA" in files:
-            certfile = os.path.join(cert, "CERT.RSA")
-        else:
-            for f in files:
-                if f.lower().endswith(".rsa"):
-                    certfile = os.path.join(cert, f)
-                elif f.lower().endswith(".dsa"):
-                    certfile = os.path.join(cert, f)
-
-        args = ['java', '-jar', CP_PATH, certfile]
-        data = subprocess.check_output(args).replace('\n', '</br>')
-        return data
+            logger.error("\n[ERROR] No certificate found - "+str(e1))
+        return data.replace('\n', '</br>')
 
     def info(self):
         a, d, dx = anz.AnalyzeAPK(self.apk, decompiler='dad')
