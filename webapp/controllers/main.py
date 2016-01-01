@@ -55,27 +55,29 @@ def dashboard():
         if app_name in [str(i) for i in apps]:
             flash("Already scanned!")
             logger.warn('Already scanned app.')
-            return redirect(url_for('.report', app_name=app_name))
+            return redirect(url_for('.report', app_name=app_name, status="Finished"))
         else:
             flash("Scan in progress...")
             # add the app to the DB
             scan_obj = StaticAnalyzer(request.args["apk"])
-            new_app = StaticAnalyzerAndroid(app_name, json.dumps(scan_obj.init()))
+            new_app = StaticAnalyzerAndroid(app_name, json.dumps(scan_obj.init()), "Running")
             db.session.add(new_app)
             db.session.commit()
-            return redirect(url_for('.report', app_name=app_name))
+            return redirect(url_for('.report', app_name=app_name, status="Running"))
     return render_template('dashboard.html', apps=apps)
 
 
-@main.route("/dashboard/<app_name>", methods=['GET'])
-def report(app_name):
+@main.route("/dashboard/<app_name>/status=<status>", methods=['GET'])
+def report(app_name, status):
     return render_template('report.html')
 
+@main.route("/dashboard/<app_name>/dynamic/status=<status>")
+def dynamic(app_name, status):
+    return render_template('dynamic.html')
 
 @main.route("/graph/<app>")
 def graph(app):
     return render_template('graph.html')
-
 
 @main.route("/cfg/<path:filename>")
 @crossdomain(origin="*")
@@ -122,3 +124,4 @@ class Scan(Resource):
 api.add_resource(GetAllApps, '/api/apps')
 api.add_resource(Scan, '/api/scan/<app>')
 api.add_resource(FetchDB, '/api/fetch/<app>')
+api.add_resource(SetStatus, '/api/<app>/status=<status>')

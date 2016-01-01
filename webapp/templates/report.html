@@ -229,11 +229,23 @@
 {% block js %}
 <script>
 var list = document.URL.split("/");
-var app = list[list.length-1];
+var app = list[list.length-2];
+var status = list[list.length-1].indexOf("Finished" || "Running");
+
+
+function setStatus(status) {
+    $.post("/api/"+app+"/status="+status, function(data) {
+        if (data) {
+            console.log("status changed to "+status);
+        }
+    });
+}
+
 
 function populate(d) {
     console.log(d);
     $('.overlay').remove();
+    setStatus('Finished');
     $('#report_head').html('<b><u>Target APK</u></b>: '+d.name);
     for (var file in d.file_types) {
         $('#filelist-body').append(String(file)+' - '+d.file_types[file]+'\n');
@@ -260,7 +272,6 @@ function populate(d) {
         $('#permissions-body').append('<tr><td>'+String(perm)+'</td><td><span class="label label-'+codes[d.detailed_permissions[perm][0]]+'">'+d.detailed_permissions[perm][0]+'</span></td><td>'+d.detailed_permissions[perm][1]+'</td><td>'+d.detailed_permissions[perm][2]+'</td></tr>');
         level = codes[d.detailed_permissions[perm][0]];
     }
-    
     $.each(d.activities, function(id, obj) {
         $('#activities pre').append(d.activities[id]+'\n');
     });
@@ -289,9 +300,16 @@ function populate(d) {
 
 function getData() {
     addOverlay('#report-body');
-    $.getJSON('/api/scan/'+app+'.apk', function(data) {
-        populate(data);
-    })
+    if (status > -1) {
+        //fetch the results from the DB
+        $.getJSON('/api/fetch/'+app, function(data) {
+            populate(data);
+        });
+    } else {
+        $.getJSON('/api/scan/'+app+'.apk', function(data) {
+            populate(data);
+        });
+    }
 }
 
 $( document ).ready(getData);
