@@ -69,7 +69,6 @@ class StaticAnalyzer(object):
             "target_sdk_version": a.get_target_sdk_version(),
             "min_sdk_version": a.get_min_sdk_version(),
             "max_sdk_version": a.get_max_sdk_version(),
-            "libraries": a.get_libraries(),
             "detailed_permissions": a.get_details_permissions(),
             "file_types": a.get_files_types(),
             "files": a.get_files(),
@@ -270,10 +269,10 @@ class StaticAnalyzer(object):
         stdout, stderr = fire_jadx.communicate()
         if stdout:
             logger.info(stdout)
-	    return True
+        return True
         if stderr:
             logger.error(stderr)
-	    return False
+        return False
 
     def unzip(self):
         os.system('unzip -d %s %s' % (self.app_dir, self.apk))

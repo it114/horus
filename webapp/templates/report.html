@@ -11,8 +11,8 @@
     <div class="panel-group" id="report-body">
         <div class="panel panel-default" id="basic">
             <div class="panel-heading" style="padding: 0 15px">
-            <div class="row-">
-                <div class="col-md-10" style="padding-left: 15px">
+            <div class="row">
+                <div class="container" style="padding-left: 15px">
                 <h4 class="panel-title">
                 <a data-toggle="collapse" href="#basicinfo" class="collapsed">
                 <h4 style="padding: 15px">Basic APP and File info<small> APK info</small></h4>
@@ -24,7 +24,7 @@
             <div id="basicinfo" class="panel-collapse collapse" style="height: 0px; padding-top: 20px; padding-bottom: 20px;">
             <div class="panel-body">
                 <div class="row">
-                    <div class="col col-lg-6">
+                    <div class="col col-md-6">
                         <div class="list-group">
                         <p id="name"><span class="label label-primary">Name</span> </p>
                         <p id="size"><span class="label label-primary">Size</span> </p>
@@ -33,7 +33,7 @@
                         <p id="sha256"><span class="label label-primary">SHA256</span> </p>
                         </div>
                     </div>
-                    <div class="col col-lg-6">
+                    <div class="col col-md-6">
                         <div class="list-group">
                             <p id="package_name"><span class="label label-primary">Package Name</span> </p>
                             <p id="main_activity"><span class="label label-primary">Main Activity</span> </p>
@@ -45,7 +45,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
+                <div class="col col-md-4 row">
                     <div class="list-group">
                         <p id="native"><span class="label label-primary">Native</span> </p>
                         <p id="dynamic"><span class="label label-primary">Dynamic</span> </p>
@@ -109,7 +109,7 @@
                 <div class="col-md-10" style="padding-left: 15px">
                 <h4 class="panel-title">
                 <a data-toggle="collapse" href="#aprsl" class="collapsed">
-                <h4 style="padding: 15px">Activities, Providers, Receivers, Services and Libraries<small></small></h4>
+                <h4 style="padding: 15px">Activities, Providers, Receivers, Services<small></small></h4>
                 </a>
                 </h4>
             </div>
@@ -122,14 +122,12 @@
                     <li><a href="#providers" data-toggle="tab">Providers</a></li>
                     <li><a href="#receivers" data-toggle="tab">Receivers</a></li>
                     <li><a href="#services" data-toggle="tab">Services</a></li>
-                    <li><a href="#libraries" data-toggle="tab">Libraries</a></li>
                 </ul>
                 <div class="tab-content">
                     <div class="tab-pane" id="activities"><pre></pre></div>
                     <div class="tab-pane" id="providers"><pre></pre></div>
                     <div class="tab-pane" id="receivers"><pre></pre></div>
                     <div class="tab-pane" id="services"><pre></pre></div>
-                    <div class="tab-pane" id="libraries"><pre></pre></div>
                 </div>
             </div>
         </div>
