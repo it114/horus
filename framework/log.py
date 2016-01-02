@@ -3,7 +3,7 @@ import logging
 from webapp.settings import LOGS_FOLDER
 
 # create logger
-logger = logging.getLogger('mobsec')
+logger = logging.getLogger('horus')
 logger.setLevel(logging.DEBUG)
 
 # create console handler and set level to debug

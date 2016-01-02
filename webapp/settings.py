@@ -7,7 +7,7 @@ BASE_DIR = os.getcwd()
 UPLOADS_DIR = os.path.join(BASE_DIR, 'uploads')
 LOGS_FOLDER = os.path.join(BASE_DIR, 'logs')
 TOOLS_DIR = os.path.join(BASE_DIR, 'tools')
-OUTPUT_DIR = os.path.join(BASE_DIR, 'mobsec_review')
+OUTPUT_DIR = os.path.join(BASE_DIR, 'reports')
 
 
 class Config(object):

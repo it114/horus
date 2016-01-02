@@ -1,4 +1,4 @@
-## Mobsec
+## horus
 
 A mobile pentesting framework written in Python. It is intended to have to 2 major components:
 
@@ -8,8 +8,9 @@ A mobile pentesting framework written in Python. It is intended to have to 2 maj
 
 ## CREDITS
 
-@ajinabraham for the [MobSF](https://github.com/ajinabraham/Mobile-Security-Framework-MobSF).
+androguard
+[MobSF](https://github.com/ajinabraham/Mobile-Security-Framework-MobSF).
 
 ## LICENSE
 
-See the [LICENSE](https://github.com/delta24/mobsec/LICENSE) file
+See the [LICENSE](https://github.com/delta24/horus/LICENSE) file

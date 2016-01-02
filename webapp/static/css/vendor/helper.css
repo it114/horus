@@ -164,10 +164,6 @@
   color: #F00;
 }
 
-body {
-        padding-top: 70px;
-}
-
 /* Used in plugin reports */
 .wrappedPre {
         overflow: auto;

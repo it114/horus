@@ -21,11 +21,6 @@ def create_app(object_name, env="dev"):
     An flask application factory, as explained here:
     http://flask.pocoo.org/docs/patterns/appfactories/
 
-    Arguments:
-        object_name: the python path of the config object,
-                     e.g. mobsec.settings.ProdConfig
-
-        env: The name of the current environment, e.g. prod or dev
     """
 
     app = Flask(__name__)
