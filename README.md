@@ -1,3 +1,5 @@
+![](http://i.imgur.com/k0COvfS.jpg)
+
 ## horus
 
 A mobile pentesting framework written in Python. It is intended to have to 2 major components:
