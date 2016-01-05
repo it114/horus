@@ -7,13 +7,13 @@ A mobile pentesting framework written in Python. It is intended to have to 2 maj
 
 ## Screenshots
 
-![1.png](https://drive.google.com/file/d/0BxN9QSZCZrToSWRLQjJ5cTZuRGc/view?usp=sharing)
+![1.png](http://i.imgur.com/gz9TFgB.png)
 
-![2.png](https://drive.google.com/file/d/0BxN9QSZCZrTocVpqcENITk5DWlk/view?usp=sharing)
+![2.png](http://i.imgur.com/ykdnbYZ.png)
 
-![3.png](https://drive.google.com/file/d/0BxN9QSZCZrToeFZodW5DQU9vSmc/view?usp=sharing)
+![3.png](http://i.imgur.com/GVnk53h.png)
 
-![4.png](https://drive.google.com/file/d/0BxN9QSZCZrToTkxYQldkY20tbkE/view?usp=sharing)
+![4.png](http://i.imgur.com/g1UD9hY.png)
 
 
 ## CREDITS
