@@ -6,6 +6,7 @@ from flask import Flask, make_response, request, current_app
 from datetime import timedelta
 from functools import update_wrapper
 from uuid import uuid4
+from contextlib import contextmanager
 
 from requests.utils import super_len
 
@@ -585,3 +586,12 @@ class FileWrapper(object):
 
     def read(self, length=-1):
         return self.fd.read(length)
+
+@contextmanager
+def stdout_redirector(stream):
+    old_stdout = sys.stdout
+    sys.stdout = stream
+    try:
+        yield
+    finally:
+        sys.stdout = old_stdout

@@ -62,3 +62,9 @@ android/
 
 # migrations
 migrations/
+
+# reports
+reports/*
+
+# uploads
+uploads/*

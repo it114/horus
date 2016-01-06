@@ -193,12 +193,12 @@
             <div class="panel-body">
                 <ul class="nav nav-tabs">
                     <li><a href="#strings" data-toggle="tab">Strings</a></li>
-                    <li><a href="#email" data-toggle="tab">Email</a></li>
+                    <li><a href="#emails" data-toggle="tab">Emails</a></li>
                     <li><a href="#urls" data-toggle="tab">URLs</a></li>
                 </ul>
                 <div class="tab-content">
                     <div class="tab-pane" id="strings"><pre></pre></div>
-                    <div class="tab-pane" id="email"><pre></pre></div>
+                    <div class="tab-pane" id="emails"><pre></pre></div>
                     <div class="tab-pane" id="urls"><pre></pre></div>
                 </div>
             </div>
@@ -228,6 +228,7 @@
 <script>
 var list = document.URL.split("/");
 var app = list[list.length-2];
+console.log(list);
 var status = list[list.length-1].indexOf("Finished" || "Running");
 
 
@@ -282,14 +283,17 @@ function populate(d) {
     $.each(d.services, function(id, obj) {
         $('#services pre').append(d.services[id]+'\n');
     });
-    $.each(d.libraries, function(id, obj) {
-        $('#libraries pre').append(d.libraries[id]+'\n');
-    });
     $('#cert-body').append(d.cert);
     $('#manifest-anal-body').append(d.manifest_analysis);
     $.each(d.strings, function(id, obj) {
         $('#strings pre').append(d.strings[id]+'\n');
-    })
+    });
+    $.each(d.emails, function(id, obj) {
+        $('#emails pre').append(d.emails[id]+'\n');
+    });
+    $.each(d.urls, function(id, obj) {
+        $('#urls pre').append(d.urls[id]+'\n');
+    });
     $('#native').append(d.misc.Native || "false");
     $('#reflection').append(d.misc.Reflection || "false");
     $('#dynamic').append(d.misc.Dynamic || "false");
