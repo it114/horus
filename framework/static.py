@@ -1,5 +1,6 @@
 import urllib
 import urllib2
+from urllib2 import urlopen, HTTPError
 import subprocess
 import io
 import os
@@ -14,18 +15,35 @@ import androlyze as anz
 from androguard.core.bytecodes import apk
 from androguard.core.bytecodes import dvm
 from androguard.core.analysis import analysis
-from framework.stadyna_analyser import StadynaAnalyser
+from androguard.core.analysis import analysis
+from androguard.core.bytecodes.apk import *
+
+# Androwarn modules import
+from framework.core import *
+from framework.api_constants import *
+from framework.util import *
+from framework.api import *
+
+from framework.malicious_behaviours.Audio_video_interception import *
+from framework.malicious_behaviours.code_execution import *
+from framework.malicious_behaviours.connection_interfaces import *
+from framework.malicious_behaviours.device_settings import *
+from framework.malicious_behaviours.Geolocation_information import *
+from framework.malicious_behaviours.PIM_leakage import *
+from framework.malicious_behaviours.remote_connection import *
+from framework.malicious_behaviours.telephony_identifiers import *
+from framework.malicious_behaviours.telephony_services import *
 
 
 class StaticAnalyzer(object):
     def __init__(self, name):
         self.name = name
-        out = os.path.join(OUTPUT_DIR, self.name.strip(".apk"))
-        # create a dir based on name
-        if not os.path.exists(out):
-            os.makedirs(out)
         self.app_dir = os.path.join(OUTPUT_DIR, self.name.strip(".apk"))
         self.apk = os.path.join(UPLOADS_DIR, self.name)
+        self.extract_dir = os.path.join(self.app_dir, "extracted")
+        self.decompile_dir = os.path.join(self.app_dir, "decompiled")
+        if not os.path.exists(self.app_dir):
+            os.makedirs(self.app_dir)
 
     def init(self):
         # step 1:Extract
@@ -39,7 +57,7 @@ class StaticAnalyzer(object):
 
     def cert_info(self):
         logger.info("Extracting certificate...")
-        certdir = os.path.join(self.app_dir, 'META-INF')
+        certdir = os.path.join(self.extract_dir, 'META-INF')
         if "CERT.RSA" in os.listdir(certdir):
             certfile = os.path.join(certdir, "CERT.RSA")
         else:
@@ -72,11 +90,24 @@ class StaticAnalyzer(object):
             "detailed_permissions": a.get_details_permissions(),
             "file_types": a.get_files_types(),
             "files": a.get_files(),
-            "strings": self.get_strings(),
+            "strings": d.get_strings(),
+            "classes": d.get_classes_names(),
+            "urls": d.get_regex_strings(ur'((?:https?://|s?ftps?://|file://|javascript:|data:|www\d{0,3}[.])[\w().=/;,#:@?&~*+!$%\'{}-]+)'),
+            "emails": d.get_regex_strings("[\w.-]+@[\w-]+\.[\w.]+"),
+            "logging": d.get_regex_strings('d_sqlite|d_con_private|log'),
             "version_name": a.get_androidversion_name(),
             "version_code": a.get_androidversion_code(),
-            "permissions": a.permissions,
             "activities": a.get_activities(),
+            #"telephony_identifiers_leakage": gather_telephony_identifiers_leakage(dx),
+            #"device_settings_harvesting": gather_device_settings_harvesting(dx),
+            #"location_lookup": gather_location_lookup(dx),
+            #"connection_interfaces_exfiltration": gather_connection_interfaces_exfiltration(dx),
+            #"telephony_services_abuse": gather_telephony_services_abuse(a, dx),
+            #"audio_video_eavesdropping": gather_audio_video_eavesdropping(dx),
+            #"suspicious_connection_establishment": gather_suspicious_connection_establishment(dx),
+            #"PIM_data_leakage": gather_PIM_data_leakage(dx),
+            #"code_execution": gather_code_execution(dx),
+            "apis_used": self.get_apis_used(dx),
             "services": a.get_services(),
             "providers": a.get_providers(),
             "receivers": a.get_receivers(),
@@ -85,20 +116,28 @@ class StaticAnalyzer(object):
         }
         return output
 
-    def genCFG(self):
-        result = StadynaAnalyser()
-        result.makeFileAnalysis(self.apk)
-        result.performFinalInfoSave(self.app_dir, self.name)
+    def get_apis_used(self, x):
+        return {
+                    'classes_list': grab_classes_list(x) ,
+                    'internal_classes_list': grab_internal_classes_list(x),
+                    'external_classes_list': grab_external_classes_list(x),
+                    'internal_packages_list': grab_internal_packages_list(x),
+                    'external_packages_list': grab_external_packages_list(x),
+                    'intents_sent': grab_intents_sent(x)
+                }
+
 
     def display_dvm_info(self):
         a = apk.APK(self.apk)
         vm = dvm.DalvikVMFormat(a.get_dex())
         vmx = analysis.uVMAnalysis(vm)
 
-        return {"Native": analysis.is_native_code(vmx),
-                "Dynamic": analysis.is_dyn_code(vmx),
-                "Reflection": analysis.is_reflection_code(vmx),
-                "Obfuscation": analysis.is_ascii_obfuscation(vm)}
+        return {
+                    "Native": analysis.is_native_code(vmx),
+                    "Dynamic": analysis.is_dyn_code(vmx),
+                    "Reflection": analysis.is_reflection_code(vmx),
+                    "Obfuscation": analysis.is_ascii_obfuscation(vm)
+                }
 
     def manifest_analysis(self, mfxml, mainact):
         logger.info("Manifest Analysis Started")
@@ -245,24 +284,10 @@ class StaticAnalyzer(object):
             RET = '<tr><td>None</td><td>None</td><td>None</td><tr>'
         return RET
 
-    def get_strings(self):
-        logger.info("Extracting Strings from APK")
-        strings_tool = TOOLS_DIR + '/strings_from_apk.jar'
-        args = ['java', '-jar', strings_tool, self.apk, self.app_dir]
-        subprocess.call(args)
-        data = ''
-        try:
-            with io.open(self.app_dir + 'strings.json', mode='r', encoding="utf8", errors="ignore") as f:
-                data = f.read()
-        except:
-            pass
-        data = data[1:-1].split(",")
-        return data
-
     def decompile(self):
         # search through the uploads folder
         jadx = os.path.join(TOOLS_DIR, 'jadx/bin/jadx')
-        args = [jadx, "-d", self.app_dir, self.apk]
+        args = [jadx, "-d", self.decompile_dir, self.apk]
         fire_jadx = subprocess.Popen(args, stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT)
         # set to communicate with the logger
@@ -275,7 +300,7 @@ class StaticAnalyzer(object):
         return False
 
     def unzip(self):
-        os.system('unzip -d %s %s' % (self.app_dir, self.apk))
+        os.system('unzip -d %s %s' % (self.extract_dir, self.apk))
 
     def size(self):
         return round(float(os.path.getsize(self.apk)) / (1024 * 1024), 2)
@@ -320,3 +345,42 @@ class StaticAnalyzer(object):
         response = json.loads(urllib2.urlopen(req).read())
 
         return response["scans"]
+
+    def grab_application_name_description_icon(self, package_name) :
+        """
+            @param package_name : package name
+
+            @rtype : (name, description, icon) string tuple
+        """
+
+        # Constants
+        REQUEST_TIMEOUT = 4
+        ERROR_APP_DESC_NOT_FOUND = 'N/A'
+
+
+        try :
+            # Content in English
+            url = "http://play.google.com/store/apps/details?id=%s&hl=en" % str(package_name)
+
+            req = urllib2.Request(url)
+            response = urllib2.urlopen(req, timeout=REQUEST_TIMEOUT)
+            the_page = response.read()
+
+            p_name = re.compile(ur'''<h1 class="doc-banner-title">(.*)</h1>''')
+            p_desc = re.compile(ur'''(?:\<div id=\"doc-original-text\" \>)(.*)(?:\<\/div\>\<\/div\>\<div class\=\"doc-description-overflow\"\>)''')
+            p_icon = re.compile(ur'''(?:\<div class\=\"doc-banner-icon\"\>)(.*)(?:\<\/div\>\<\/td\><td class="doc-details-ratings-price")''')
+
+            if p_name.findall(the_page) and p_desc.findall(the_page) and p_icon.findall(the_page) :
+                name = strip_HTML_tags(p_name.findall(the_page)[0].decode("utf-8"))
+                desc = strip_HTML_tags(p_desc.findall(the_page)[0].decode("utf-8"))
+                icon_link = p_icon.findall(the_page)[0]
+
+                return (name, desc, icon_link)
+
+            else :
+                logger.warn("'%s' application's description and icon could not be found in the page" % str(package_name))
+                return ERROR_APP_DESC_NOT_FOUND, ERROR_APP_DESC_NOT_FOUND, ERROR_APP_DESC_NOT_FOUND
+
+        except HTTPError :
+            logger.warn("'%s' application name does not exist on Google Play" % str(package_name))
+            return ERROR_APP_DESC_NOT_FOUND, ERROR_APP_DESC_NOT_FOUND, ERROR_APP_DESC_NOT_FOUND
