@@ -3,23 +3,25 @@
 # Copyright (c) 2012 Geoffroy Gueguen <geoffroy.gueguen@gmail.com>
 # All Rights Reserved.
 #
-# Androguard is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# Androguard is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU Lesser General Public License
-# along with Androguard.  If not, see <http://www.gnu.org/licenses/>.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS-IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import logging
-from androguard.decompiler.dad.basic_blocks import (Condition,
+from collections import defaultdict
+from androguard.decompiler.dad.basic_blocks import (CatchBlock,
+                                                    Condition,
+                                                    LoopBlock,
                                                     ShortCircuitBlock,
-                                                    LoopBlock)
+                                                    TryBlock)
 from androguard.decompiler.dad.graph import Graph
 from androguard.decompiler.dad.node import Interval
 from androguard.decompiler.dad.util import common_dom
@@ -36,26 +38,27 @@ def intervals(graph):
         interv_heads: a dict of (header node, interval)
     '''
     interval_graph = Graph()  # graph of intervals
-    heads = set([graph.entry])  # set of header nodes
+    heads = [graph.entry]  # list of header nodes
     interv_heads = {}  # interv_heads[i] = interval of header i
     processed = dict([(i, False) for i in graph])
-    edges = {}
+    edges = defaultdict(list)
 
     while heads:
-        head = heads.pop()
+        head = heads.pop(0)
 
         if not processed[head]:
             processed[head] = True
             interv_heads[head] = Interval(head)
 
-            # Check if if there is a node which has all its predecessor in the
+            # Check if there is a node which has all its predecessor in the
             # current interval. If there is, add that node to the interval and
             # repeat until all the possible nodes have been added.
             change = True
             while change:
                 change = False
                 for node in graph.rpo[1:]:
-                    if all(p in interv_heads[head] for p in graph.preds(node)):
+                    if all(
+                      p in interv_heads[head] for p in graph.all_preds(node)):
                         change |= interv_heads[head].add_node(node)
 
             # At this stage, a node which is not in the interval, but has one
@@ -63,9 +66,11 @@ def intervals(graph):
             # we add all such nodes to the header list.
             for node in graph:
                 if node not in interv_heads[head] and node not in heads:
-                    if any(p in interv_heads[head] for p in graph.preds(node)):
-                        edges.setdefault(interv_heads[head], []).append(node)
-                        heads.add(node)
+                    if any(
+                      p in interv_heads[head] for p in graph.all_preds(node)):
+                        edges[interv_heads[head]].append(node)
+                        assert(node not in heads)
+                        heads.append(node)
 
             interval_graph.add_node(interv_heads[head])
             interv_heads[head].compute_end(graph)
@@ -103,8 +108,6 @@ def derived_sequence(graph):
             deriv_seq.append(interv_graph)
 
         graph = interv_graph
-        if 0:
-            graph.draw(graph.entry.name, 'tmp/dad/intervals/')
         graph.compute_rpo()
 
     return deriv_seq, deriv_interv
@@ -114,7 +117,7 @@ def mark_loop_rec(graph, node, s_num, e_num, interval, nodes_in_loop):
     if node in nodes_in_loop:
         return
     nodes_in_loop.append(node)
-    for pred in graph.preds(node):
+    for pred in graph.all_preds(node):
         if s_num < pred.num <= e_num and pred in interval:
             mark_loop_rec(graph, pred, s_num, e_num, interval, nodes_in_loop)
 
@@ -185,11 +188,13 @@ def loop_struct(graphs_list, intervals_list):
     for i, graph in enumerate(graphs_list):
         interval = intervals_list[i]
         for head in sorted(interval.keys(), key=lambda x: x.num):
-            loop_nodes = set()
-            for node in graph.preds(head):
+            loop_nodes = []
+            for node in graph.all_preds(head):
                 if node.interval is head.interval:
                     lnodes = mark_loop(first_graph, head, node, head.interval)
-                    loop_nodes.update(lnodes)
+                    for lnode in lnodes:
+                        if lnode not in loop_nodes:
+                            loop_nodes.append(lnode)
             head.get_head().loop_nodes = loop_nodes
 
 
@@ -199,7 +204,7 @@ def if_struct(graph, idoms):
         if node.type.is_cond:
             ldominates = []
             for n, idom in idoms.iteritems():
-                if node is idom and len(graph.preds(n)) > 1:
+                if node is idom and len(graph.reverse_edges.get(n, [])) > 1:
                     ldominates.append(n)
             if len(ldominates) > 0:
                 n = max(ldominates, key=lambda x: x.num)
@@ -223,7 +228,7 @@ def switch_struct(graph, idoms):
                     m = common_dom(idoms, node, suc)
             ldominates = []
             for n, dom in idoms.iteritems():
-                if m is dom and len(graph.preds(n)) > 1:
+                if m is dom and len(graph.all_preds(n)) > 1:
                     ldominates.append(n)
             if len(ldominates) > 0:
                 n = max(ldominates, key=lambda x: x.num)
@@ -236,6 +241,7 @@ def switch_struct(graph, idoms):
             node.order_cases()
 
 
+# TODO: deal with preds which are in catch
 def short_circuit_struct(graph, idom, node_map):
     def MergeNodes(node1, node2, is_and, is_not):
         lpreds = set()
@@ -286,6 +292,8 @@ def short_circuit_struct(graph, idom, node_map):
                 if node in (then, els):
                     continue
                 if then.type.is_cond and len(graph.preds(then)) == 1:
+                    if node in (then.true, then.false):
+                        continue
                     if then.false is els:  # node && t
                         change = True
                         merged_node = MergeNodes(node, then, True, False)
@@ -297,6 +305,8 @@ def short_circuit_struct(graph, idom, node_map):
                         merged_node.true = els
                         merged_node.false = then.false
                 elif els.type.is_cond and len(graph.preds(els)) == 1:
+                    if node in (els.false, els.true):
+                        continue
                     if els.false is then:  # !node && e
                         change = True
                         merged_node = MergeNodes(node, els, True, True)
@@ -309,7 +319,7 @@ def short_circuit_struct(graph, idom, node_map):
                         merged_node.false = els.false
             done.add(node)
         if change:
-            graph.reset_rpo()
+            graph.compute_rpo()
 
 
 def while_block_struct(graph, node_map):
@@ -341,7 +351,52 @@ def while_block_struct(graph, node_map):
             graph.remove_node(node)
 
     if change:
-        graph.reset_rpo()
+        graph.compute_rpo()
+
+
+def catch_struct(graph, idoms):
+    block_try_nodes = {}
+    node_map = {}
+    for catch_block in graph.reverse_catch_edges:
+        if catch_block in graph.catch_edges:
+            continue
+        catch_node = CatchBlock(catch_block)
+
+        try_block = idoms[catch_block]
+        try_node = block_try_nodes.get(try_block)
+        if try_node is None:
+            block_try_nodes[try_block] = TryBlock(try_block)
+            try_node = block_try_nodes[try_block]
+
+            node_map[try_block] = try_node
+            for pred in graph.all_preds(try_block):
+                pred.update_attribute_with(node_map)
+                if try_block in graph.sucs(pred):
+                    graph.edges[pred].remove(try_block)
+                graph.add_edge(pred, try_node)
+
+            if try_block.type.is_stmt:
+                follow = graph.sucs(try_block)
+                if follow:
+                    try_node.follow = graph.sucs(try_block)[0]
+                else:
+                    try_node.follow = None
+            elif try_block.type.is_cond:
+                loop_follow = try_block.follow['loop']
+                if loop_follow:
+                    try_node.follow = loop_follow
+                else:
+                    try_node.follow = try_block.follow['if']
+            elif try_block.type.is_switch:
+                try_node.follow = try_block.follow['switch']
+            else:  # return or throw
+                try_node.follow = None
+
+        try_node.add_catch_node(catch_node)
+    for node in graph.nodes:
+        node.update_attribute_with(node_map)
+    if graph.entry in node_map:
+        graph.entry = node_map[graph.entry]
 
 
 def update_dom(idoms, node_map):
@@ -378,3 +433,5 @@ def identify_structures(graph, idoms):
         if len(follows) >= 1:
             follow = min(follows, key=lambda x: x.num)
             node.follow['if'] = follow
+
+    catch_struct(graph, idoms)

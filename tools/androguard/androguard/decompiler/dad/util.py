@@ -3,18 +3,17 @@
 # Copyright (c) 2012 Geoffroy Gueguen <geoffroy.gueguen@gmail.com>
 # All Rights Reserved.
 #
-# Androguard is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# Androguard is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU Lesser General Public License
-# along with Androguard.  If not, see <http://www.gnu.org/licenses/>.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS-IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import logging
 
@@ -30,8 +29,6 @@ TYPE_DESCRIPTOR = {
     'J': 'long',
     'F': 'float',
     'D': 'double',
-    'STR': 'String',
-    'StringBuilder': 'String',
 }
 
 ACCESS_FLAGS_CLASSES = {
@@ -70,16 +67,39 @@ ACCESS_FLAGS_METHODS = {
     0x80:    'varargs',
     0x100:   'native',
     0x400:   'abstract',
-    0x800:   'strict',
+    0x800:   'strictfp',
     0x1000:  'synthetic',
     0x10000: 'constructor',
-    0x20000: 'synchronized',
+    0x20000: 'declared_synchronized',
 }
+
+ACCESS_ORDER = [0x1, 0x4, 0x2, 0x400, 0x8, 0x10,
+                0x80, 0x40, 0x20, 0x100, 0x800,
+                0x200, 0x1000, 0x2000, 0x4000,
+                0x10000, 0x20000]
 
 TYPE_LEN = {
     'J': 2,
     'D': 2,
 }
+
+
+def get_access_class(access):
+    sorted_access = [i for i in ACCESS_ORDER if i & access]
+    return [ACCESS_FLAGS_CLASSES.get(flag, 'unkn_%d' % flag)
+            for flag in sorted_access]
+
+
+def get_access_method(access):
+    sorted_access = [i for i in ACCESS_ORDER if i & access]
+    return [ACCESS_FLAGS_METHODS.get(flag, 'unkn_%d' % flag)
+            for flag in sorted_access]
+
+
+def get_access_field(access):
+    sorted_access = [i for i in ACCESS_ORDER if i & access]
+    return [ACCESS_FLAGS_FIELDS.get(flag, 'unkn_%d' % flag)
+            for flag in sorted_access]
 
 
 def build_path(graph, node1, node2, path=None):
@@ -94,7 +114,7 @@ def build_path(graph, node1, node2, path=None):
     if node1 is node2:
         return path
     path.append(node2)
-    for pred in graph.preds(node2):
+    for pred in graph.all_preds(node2):
         if pred in path:
             continue
         build_path(graph, node1, pred, path)
@@ -114,7 +134,7 @@ def common_dom(idom, cur, pred):
 
 def merge_inner(clsdict):
     '''
-    Merge the inner class(es) of a class :
+    Merge the inner class(es) of a class:
     e.g class A { ... } class A$foo{ ... } class A$bar{ ... }
        ==> class A { class foo{...} class bar{...} ... }
     '''

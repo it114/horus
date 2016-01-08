@@ -3,18 +3,17 @@
 # Copyright (C) 2012, Anthony Desnos <desnos at t0t0.fr>
 # All rights reserved.
 #
-# Androguard is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# Androguard is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU Lesser General Public License
-# along with Androguard.  If not, see <http://www.gnu.org/licenses/>.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS-IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import sys
 import os
@@ -22,9 +21,12 @@ import logging
 import types
 import random
 import string
+import imp
 
-ANDROGUARD_VERSION = "2.0"
+ANDROGUARD_VERSION = "3.0"
 
+from androguard.core.api_specific_resources.aosp_permissions.aosp_permissions import AOSP_PERMISSIONS
+from androguard.core.api_specific_resources.api_permission_mappings.api_permission_mappings import AOSP_PERMISSIONS_MAPPINGS
 
 def is_ascii_problem(s):
     try:
@@ -34,7 +36,7 @@ def is_ascii_problem(s):
         return True
 
 
-class Color:
+class Color(object):
     Normal = "\033[0m"
     Black = "\033[30m"
     Red = "\033[31m"
@@ -101,6 +103,8 @@ CONF = {
     "PRINT_FCT": sys.stdout.write,
     "LAZY_ANALYSIS": False,
     "MAGIC_PATH_FILE": None,
+
+    "DEFAULT_API" : 19,
 }
 
 
@@ -196,49 +200,45 @@ def str2long(s):
 
     return l
 
-def random_string() :
+def random_string():
     return random.choice( string.letters ) + ''.join([ random.choice(string.letters + string.digits) for i in range(10 - 1) ] )
 
-def is_android(filename) :
+def is_android(filename):
     """Return the type of the file
 
         @param filename : the filename
-        @rtype : "APK", "DEX", "ELF", None 
+        @rtype : "APK", "DEX", "ELF", None
     """
     if not filename:
         return None
 
-    fd = open( filename, "r")
     val = None
+    with open(filename, "r") as fd:
+        f_bytes = fd.read()
+        val = is_android_raw( f_bytes )
 
-    f_bytes = fd.read(7)
-
-    val = is_android_raw( f_bytes )
-
-    fd.close()
     return val
 
 def is_android_raw(raw):
     val = None
-    f_bytes = raw[:7]
 
-    if f_bytes[0:2] == "PK":
+    if raw[0:2] == "PK" or ('AndroidManifest.xml' in raw and 'META-INF/MANIFEST.MF' in raw):
         val = "APK"
-    elif f_bytes[0:3] == "dex":
+    elif raw[0:3] == "dex":
         val = "DEX"
-    elif f_bytes[0:3] == "dey":
+    elif raw[0:3] == "dey":
         val = "DEY"
-    elif f_bytes[0:7] == "\x7fELF\x01\x01\x01":
+    elif raw[0:7] == "\x7fELF\x01\x01\x01":
         val = "ELF"
-    elif f_bytes[0:4] == "\x03\x00\x08\x00":
+    elif raw[0:4] == "\x03\x00\x08\x00":
         val = "AXML"
-    elif f_bytes[0:4] == "\x02\x00\x0C\x00":
+    elif raw[0:4] == "\x02\x00\x0C\x00":
         val = "ARSC"
 
     return val
 
-def is_valid_android_raw(raw) :
-    return raw.find("classes.dex") != -1
+def is_valid_android_raw(raw):
+  return raw.find("classes.dex") != -1
 
 # from scapy
 log_andro = logging.getLogger("andro")
@@ -249,16 +249,16 @@ log_runtime = logging.getLogger("andro.runtime")          # logs at runtime
 log_interactive = logging.getLogger("andro.interactive")  # logs in interactive functions
 log_loading = logging.getLogger("andro.loading")          # logs when loading andro
 
-def set_lazy() :
+def set_lazy():
   CONF["LAZY_ANALYSIS"] = True
 
-def set_debug() :
+def set_debug():
     log_andro.setLevel( logging.DEBUG )
 
-def set_info() :
+def set_info():
     log_andro.setLevel(logging.INFO)
 
-def get_debug() :
+def get_debug():
     return log_andro.getEffectiveLevel() == logging.DEBUG
 
 def warning(x):
@@ -266,7 +266,7 @@ def warning(x):
     import traceback
     traceback.print_exc()
 
-def error(x) :
+def error(x):
     log_runtime.error(x)
     raise()
 
@@ -276,13 +276,12 @@ def debug(x):
 def info(x):
     log_runtime.info(x)
 
-def set_options(key, value) :
+def set_options(key, value):
     CONF[ key ] = value
 
-def save_to_disk(buff, output) :
-    fd = open(output, "w")
-    fd.write(buff)
-    fd.close()
+def save_to_disk(buff, output):
+    with open(output, "w") as fd:
+        fd.write(buff)
 
 def rrmdir( directory ):
     for root, dirs, files in os.walk(directory, topdown=False):
@@ -358,3 +357,19 @@ def color_range( startcolor, goalcolor, steps ):
     goal_tuple = make_color_tuple(goalcolor)
 
     return interpolate_tuple(start_tuple, goal_tuple, steps)
+
+
+def load_api_specific_resource_module(resource_name, api):
+    if resource_name == "aosp_permissions":
+        module = AOSP_PERMISSIONS
+    elif resource_name == "api_permission_mappings":
+        module = AOSP_PERMISSIONS_MAPPINGS
+    else:
+        error("Invalid resource: %s" % resource_name)
+
+    if not api:
+        api = CONF["DEFAULT_API"]
+    value = module.get(api)
+    if value:
+        return value
+    return module.get('9')

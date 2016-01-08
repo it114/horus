@@ -3,23 +3,25 @@
 # Copyright (C) 2012, Anthony Desnos <desnos at t0t0.fr>
 # All rights reserved.
 #
-# Androguard is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# Androguard is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU Lesser General Public License
-# along with Androguard.  If not, see <http://www.gnu.org/licenses/>.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS-IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 
 from androguard.core import bytecode
 from androguard.core import androconf
 from androguard.core.bytecodes.dvm_permissions import DVM_PERMISSIONS
+from androguard.util import read
+
+from androguard.core.resources import public
 
 import StringIO
 from struct import pack, unpack
@@ -29,77 +31,78 @@ import re
 
 from xml.dom import minidom
 
+NS_ANDROID_URI = 'http://schemas.android.com/apk/res/android'
+
 # 0: chilkat
 # 1: default python zipfile module
 # 2: patch zipfile module
 ZIPMODULE = 1
 
 import sys
-if sys.hexversion < 0x2070000 :
-    try :
+if sys.hexversion < 0x2070000:
+    try:
         import chilkat
-        ZIPMODULE = 0 
+        ZIPMODULE = 0
         # UNLOCK : change it with your valid key !
-        try :
-            CHILKAT_KEY = open("key.txt", "rb").read()
-        except Exception :
+        try:
+            CHILKAT_KEY = read("key.txt")
+        except Exception:
             CHILKAT_KEY = "testme"
 
-    except ImportError :
+    except ImportError:
         ZIPMODULE = 1
-else :
-    ZIPMODULE = 1 
+else:
+    ZIPMODULE = 1
 
 ################################################### CHILKAT ZIP FORMAT #####################################################
-class ChilkatZip :
-    def __init__(self, raw) :
+class ChilkatZip(object):
+    def __init__(self, raw):
         self.files = []
         self.zip = chilkat.CkZip()
 
         self.zip.UnlockComponent( CHILKAT_KEY )
 
         self.zip.OpenFromMemory( raw, len(raw) )
-        
+
         filename = chilkat.CkString()
         e = self.zip.FirstEntry()
-        while e != None :
+        while e != None:
             e.get_FileName(filename)
             self.files.append( filename.getString() )
             e = e.NextEntry()
 
-    def delete(self, patterns) :
+    def delete(self, patterns):
         el = []
 
         filename = chilkat.CkString()
         e = self.zip.FirstEntry()
-        while e != None :
+        while e != None:
             e.get_FileName(filename)
-          
-            if re.match(patterns, filename.getString()) != None :
+
+            if re.match(patterns, filename.getString()) != None:
                 el.append( e )
             e = e.NextEntry()
 
-        for i in el :
+        for i in el:
             self.zip.DeleteEntry( i )
 
-    def remplace_file(self, filename, buff) :
+    def remplace_file(self, filename, buff):
         entry = self.zip.GetEntryByName(filename)
-        if entry != None :
-
+        if entry != None:
             obj = chilkat.CkByteData()
             obj.append2( buff, len(buff) )
             return entry.ReplaceData( obj )
         return False
 
-    def write(self) :
+    def write(self):
         obj = chilkat.CkByteData()
         self.zip.WriteToMemory( obj )
         return obj.getBytes()
 
-    def namelist(self) :
+    def namelist(self):
         return self.files
 
-    def read(self, elem) :
+    def read(self, elem):
         e = self.zip.GetEntryByName( elem )
         s = chilkat.CkByteData()
 
@@ -128,7 +131,7 @@ def sign_apk(filename, keystore, storepass):
 
 
 ######################################################## APK FORMAT ########################################################
-class APK:
+class APK(object):
     """
         This class can access to all elements in an APK file
 
@@ -146,7 +149,7 @@ class APK:
 
         :Example:
           APK("myfile.apk")
-          APK(open("myfile.apk", "rb").read(), raw=True)
+          APK(read("myfile.apk"), raw=True)
     """
     def __init__(self, filename, raw=False, mode="r", magic_file=None, zipmodule=ZIPMODULE):
         self.filename = filename
@@ -158,7 +161,11 @@ class APK:
         self.package = ""
         self.androidversion = {}
         self.permissions = []
+        self.declared_permissions = {}
         self.valid_apk = False
+		
+		#Added by AndroBugs
+        self.security = {}
 
         self.files = {}
         self.files_crc32 = {}
@@ -168,9 +175,7 @@ class APK:
         if raw == True:
             self.__raw = filename
         else:
-            fd = open(filename, "rb")
-            self.__raw = fd.read()
-            fd.close()
+            self.__raw = read(filename)
 
         self.zipmodule = zipmodule
 
@@ -193,16 +198,51 @@ class APK:
 
                 if self.xml[i] != None:
                     self.package = self.xml[i].documentElement.getAttribute("package")
-                    self.androidversion["Code"] = self.xml[i].documentElement.getAttribute("android:versionCode")
-                    self.androidversion["Name"] = self.xml[i].documentElement.getAttribute("android:versionName")
+
+					#Added by AndroBugs
+                    self.security["SharedUserId"] = self.xml[i].documentElement.getAttributeNS(NS_ANDROID_URI, "sharedUserId")
+
+                    self.androidversion["Code"] = self.xml[i].documentElement.getAttributeNS(NS_ANDROID_URI, "versionCode")
+                    self.androidversion["Name"] = self.xml[i].documentElement.getAttributeNS(NS_ANDROID_URI, "versionName")
 
                     for item in self.xml[i].getElementsByTagName('uses-permission'):
-                        self.permissions.append(str(item.getAttribute("android:name")))
-
+                        self.permissions.append(str(item.getAttributeNS(NS_ANDROID_URI, "name")))
+                    
+                    #getting details of the declared permissions
+                    for d_perm_item in self.xml[i].getElementsByTagName('permission'):
+                        d_perm_name = self._get_res_string_value(str(d_perm_item.getAttributeNS(NS_ANDROID_URI, "name")))
+                        d_perm_label = self._get_res_string_value(str(d_perm_item.getAttributeNS(NS_ANDROID_URI, "label")))
+                        d_perm_description = self._get_res_string_value(str(d_perm_item.getAttributeNS(NS_ANDROID_URI, "description")))
+                        d_perm_permissionGroup = self._get_res_string_value(str(d_perm_item.getAttributeNS(NS_ANDROID_URI, "permissionGroup")))
+                        d_perm_protectionLevel = self._get_res_string_value(str(d_perm_item.getAttributeNS(NS_ANDROID_URI, "protectionLevel")))
+                        
+                        d_perm_details = {
+                                "label" : d_perm_label,
+                                "description" : d_perm_description,
+                                "permissionGroup" : d_perm_permissionGroup,
+                                "protectionLevel" : d_perm_protectionLevel,
+                        }
+                        self.declared_permissions[d_perm_name] = d_perm_details
+                    
                     self.valid_apk = True
 
         self.get_files_types()
+        self.permission_module = androconf.load_api_specific_resource_module("aosp_permissions", self.get_target_sdk_version())
 
+    def _get_res_string_value(self, string):
+        if not string.startswith('@string/'):
+            return string
+        string_key = string[9:]
+        
+        res_parser = self.get_android_resources()
+        string_value = ''
+        for package_name in res_parser.get_packages_names():
+            extracted_values = res_parser.get_string(package_name, string_key)
+            if extracted_values:
+                string_value = extracted_values[1]
+                break
+        return string_value
+    
     def get_AndroidManifest(self):
         """
             Return the Android Manifest XML file
@@ -210,6 +250,50 @@ class APK:
             :rtype: xml object
         """
         return self.xml["AndroidManifest.xml"]
+
+    #Added by AndroBugs
+    def is_debuggable(self):
+        """
+            Return true if the APK is debuggable(debug messages will be shown on Logcat), false otherwise
+
+            :rtype: boolean
+        """
+        debuggable = self.get_element("application", "debuggable")
+        #print(debuggable)
+        if debuggable is None:
+            #If the default value is not set, it's not debuggable.
+            return False
+        else:
+            if debuggable.lower() == 'true':
+                return True 
+            else:
+                return False
+
+    #Added by AndroBugs
+    def is_adb_backup_enabled(self):
+        """
+            Return true if the APK can be backed up
+
+            :rtype: boolean
+        """
+        adb_backup = self.get_element("application", "allowBackup")
+        if adb_backup is None:
+            #If the default value is not set, the default is True.
+            return True
+        else:
+            if adb_backup.lower() == 'true':
+                return True 
+            else:
+                return False
+
+    #Added by AndroBugs
+    def get_android_name_in_application_tag(self):
+        """
+            Return the attribute of "android:name" in application tag
+
+            :rtype: string
+        """
+        return self.get_element("application", "name")
 
     def is_valid_APK(self):
         """
@@ -226,6 +310,24 @@ class APK:
             :rtype: string
         """
         return self.filename
+
+    def get_app_name(self):
+        """
+            Return the appname of the APK
+
+            :rtype: string
+        """
+        app_elem = self.get_AndroidManifest().getElementsByTagName("application")[0]
+        app_name = app_elem.getAttribute("android:label")
+        if app_name.startswith("@"):
+            res_parser = self.get_android_resources()
+            app_name = ''
+            for package_name in res_parser.get_packages_names():
+                app_name = res_parser.get_string(package_name, 'app_name')
+                if app_name:
+                    app_name = app_name[1]
+                    break
+        return app_name
 
     def get_package(self):
         """
@@ -251,6 +353,13 @@ class APK:
         """
         return self.androidversion["Name"]
 
+    def get_shared_user_id(self):   #Added by AndroBugs
+        """
+            Return the android sharedUserId
+
+            :rtype: string
+        """
+        return self.security["SharedUserId"]
     def get_files(self):
         """
             Return the files inside the APK
@@ -291,14 +400,20 @@ class APK:
             for i in self.get_files():
                 buffer = self.zip.read(i)
                 self.files[i] = ms.buffer(buffer)
-                self.files[i] = self._patch_magic(buffer, self.files[i])
+                if self.files[i] is None:
+                    self.files[i] = "Unknown"
+                else:
+                    self.files[i] = self._patch_magic(buffer, self.files[i])
                 self.files_crc32[i] = crc32(buffer)
         else:
             m = magic.Magic(magic_file=self.magic_file)
             for i in self.get_files():
                 buffer = self.zip.read(i)
                 self.files[i] = m.from_buffer(buffer)
-                self.files[i] = self._patch_magic(buffer, self.files[i])
+                if self.files[i] is None:
+                    self.files[i] = "Unknown"
+                else:
+                    self.files[i] = self._patch_magic(buffer, self.files[i])
                 self.files_crc32[i] = crc32(buffer)
 
         return self.files
@@ -370,24 +485,61 @@ class APK:
             :param attribute: a string which specify the attribute
         """
         l = []
-        for i in self.xml :
-            for item in self.xml[i].getElementsByTagName(tag_name) :
-                value = item.getAttribute(attribute)
+        for i in self.xml:
+            for item in self.xml[i].getElementsByTagName(tag_name):
+                value = item.getAttributeNS(NS_ANDROID_URI, attribute)
                 value = self.format_value( value )
 
 
                 l.append( str( value ) )
         return l
 
-    def format_value(self, value) :
-        if len(value) > 0 :
-            if value[0] == "." : 
+    #Added by AndroBugs
+    def get_PermissionName_to_ProtectionLevel_mapping(self) :
+        dic_mapping = {}
+        for i in self.xml :
+            for item in self.xml[i].getElementsByTagName("permission") :
+                name = item.getAttributeNS(NS_ANDROID_URI, "name")
+                protectionLevel = item.getAttributeNS(NS_ANDROID_URI, "protectionLevel")
+                if name is not None:
+                    try :
+                        if protectionLevel == "" :
+                            dic_mapping[name] = 0
+                        else :
+                            dic_mapping[name] = int(protectionLevel, 16)  #translate hex number to int
+                    except ValueError:
+                        dic_mapping[name] = 0
+        return dic_mapping
+
+    #Added by AndroBugs
+    def get_permission_tag_wrong_settings_names(self):
+        """
+            Return name of wrong settings in permission tag in string
+        """
+        #Must use this way because item.getAttribute of xml library will always return an empty string
+        l = []
+        for i in self.xml :
+            for item in self.xml[i].getElementsByTagName("permission") :
+                #'item' is a 'xml.dom.minidom' object, see the reference: http://docs.python.org/2/library/xml.dom.minidom.html
+                permissionXml = item.toxml()
+                progPermissionXml = re.compile(".*android:permissionGroup=\"\".*")  
+                if progPermissionXml.match(permissionXml) :
+                    value = item.getAttribute("android:name")
+                    if value is not None:
+                        value = self.format_value( value )
+                        l.append( str( value ) )
+        return l
+
+
+    def format_value(self, value):
+        if len(value) > 0:
+            if value[0] == ".":
                 value = self.package + value
-            else :
+            else:
                 v_dot = value.find(".")
-                if v_dot == 0 :
+                if v_dot == 0:
                     value = self.package + "." + value
-                elif v_dot == -1 :
+                elif v_dot == -1:
                     value = self.package + "." + value
         return value
 
@@ -402,15 +554,15 @@ class APK:
 
             :rtype: string
         """
-        for i in self.xml :
-            for item in self.xml[i].getElementsByTagName(tag_name) :
-                value = item.getAttribute(attribute)
+        for i in self.xml:
+            for item in self.xml[i].getElementsByTagName(tag_name):
+                value = item.getAttributeNS(NS_ANDROID_URI, attribute)
 
-                if len(value) > 0 :
+                if len(value) > 0:
                     return value
         return None
 
-    def get_main_activity(self) :
+    def get_main_activity(self):
         """
             Return the name of the main activity
 
@@ -420,19 +572,19 @@ class APK:
         y = set()
 
         for i in self.xml:
-            for item in self.xml[i].getElementsByTagName("activity") :
-                for sitem in item.getElementsByTagName( "action" ) :
-                    val = sitem.getAttribute( "android:name" )
-                    if val == "android.intent.action.MAIN" :
-                        x.add( item.getAttribute( "android:name" ) )
-                   
-                for sitem in item.getElementsByTagName( "category" ) :
-                    val = sitem.getAttribute( "android:name" )
-                    if val == "android.intent.category.LAUNCHER" :
-                        y.add( item.getAttribute( "android:name" ) )
-                
+            for item in self.xml[i].getElementsByTagName("activity"):
+                for sitem in item.getElementsByTagName( "action" ):
+                    val = sitem.getAttributeNS(NS_ANDROID_URI, "name" )
+                    if val == "android.intent.action.MAIN":
+                        x.add( item.getAttributeNS(NS_ANDROID_URI, "name" ) )
+
+                for sitem in item.getElementsByTagName( "category" ):
+                    val = sitem.getAttributeNS(NS_ANDROID_URI, "name" )
+                    if val == "android.intent.category.LAUNCHER":
+                        y.add( item.getAttributeNS(NS_ANDROID_URI, "name" ) )
+
         z = x.intersection(y)
-        if len(z) > 0 :
+        if len(z) > 0:
             return self.format_value(z.pop())
         return None
 
@@ -442,7 +594,7 @@ class APK:
 
             :rtype: a list of string
         """
-        return self.get_elements("activity", "android:name")
+        return self.get_elements("activity", "name")
 
     def get_services(self):
         """
@@ -450,15 +602,15 @@ class APK:
 
             :rtype: a list of string
         """
-        return self.get_elements("service", "android:name")
+        return self.get_elements("service", "name")
 
-    def get_receivers(self) :
+    def get_receivers(self):
         """
             Return the android:name attribute of all receivers
 
             :rtype: a list of string
         """
-        return self.get_elements("receiver", "android:name")
+        return self.get_elements("receiver", "name")
 
     def get_providers(self):
         """
@@ -466,7 +618,7 @@ class APK:
 
             :rtype: a list of string
         """
-        return self.get_elements("provider", "android:name")
+        return self.get_elements("provider", "name")
 
     def get_intent_filters(self, category, name):
         d = {}
@@ -476,14 +628,14 @@ class APK:
 
         for i in self.xml:
             for item in self.xml[i].getElementsByTagName(category):
-                if self.format_value(item.getAttribute("android:name")) == name:
+                if self.format_value(item.getAttributeNS(NS_ANDROID_URI, "name")) == name:
                     for sitem in item.getElementsByTagName("intent-filter"):
                         for ssitem in sitem.getElementsByTagName("action"):
-                            if ssitem.getAttribute("android:name") not in d["action"]:
-                                d["action"].append(ssitem.getAttribute("android:name"))
+                            if ssitem.getAttributeNS(NS_ANDROID_URI, "name") not in d["action"]:
+                                d["action"].append(ssitem.getAttributeNS(NS_ANDROID_URI, "name"))
                         for ssitem in sitem.getElementsByTagName("category"):
-                            if ssitem.getAttribute("android:name") not in d["category"]:
-                                d["category"].append(ssitem.getAttribute("android:name"))
+                            if ssitem.getAttributeNS(NS_ANDROID_URI, "name") not in d["category"]:
+                                d["category"].append(ssitem.getAttributeNS(NS_ANDROID_URI, "name"))
 
         if not d["action"]:
             del d["action"]
@@ -509,27 +661,91 @@ class APK:
         """
         l = {}
 
-        for i in self.permissions :
+        for i in self.permissions:
             perm = i
             pos = i.rfind(".")
 
-            if pos != -1 :
+            if pos != -1:
                 perm = i[pos+1:]
-            
-            try :
+
+            try:
                 l[ i ] = DVM_PERMISSIONS["MANIFEST_PERMISSION"][ perm ]
-            except KeyError :
+            except KeyError:
                 l[ i ] = [ "normal", "Unknown permission from android reference", "Unknown permission from android reference" ]
 
         return l
 
+    def get_requested_permissions(self):
+        """
+            Returns all requested permissions.
+            
+            :rtype: list of strings
+        """
+        return self.permissions
+    
+    def get_requested_aosp_permissions(self):
+        '''
+            Returns requested permissions declared within AOSP project.
+            
+            :rtype: list of strings
+        '''
+        aosp_permissions = []
+        all_permissions = self.get_requested_permissions()
+        for perm in all_permissions:
+            if perm in self.permission_module["AOSP_PERMISSIONS"].keys():
+                aosp_permissions.append(perm)
+        return aosp_permissions
+    
+    def get_requested_aosp_permissions_details(self):
+        """
+            Returns requested aosp permissions with details.
+
+            :rtype: dictionary
+        """
+        l = {}
+        for i in self.permissions:
+            try:
+                l[i] = self.permission_module["AOSP_PERMISSIONS"][i]
+            except KeyError:
+                continue #if we have not found permission do nothing
+        return l
+    
+    def get_requested_third_party_permissions(self):
+        '''
+            Returns list of requested permissions not declared within AOSP project.
+            
+            :rtype: list of strings
+        '''
+        third_party_permissions = []
+        all_permissions = self.get_requested_permissions()
+        for perm in all_permissions:
+            if perm not in self.permission_module["AOSP_PERMISSIONS"].keys():
+                third_party_permissions.append(perm)
+        return third_party_permissions
+
+    def get_declared_permissions(self):
+        '''
+            Returns list of the declared permissions.
+            
+            :rtype: list of strings
+        '''
+        return self.declared_permissions.keys()
+    
+    def get_declared_permissions_details(self):
+        '''
+            Returns declared permissions with the details.
+            
+            :rtype: dict
+        '''
+        return self.declared_permissions
+    
     def get_max_sdk_version(self):
         """
             Return the android:maxSdkVersion attribute
 
             :rtype: string
         """
-        return self.get_element("uses-sdk", "android:maxSdkVersion")
+        return self.get_element("uses-sdk", "maxSdkVersion")
 
     def get_min_sdk_version(self):
         """
@@ -537,37 +753,49 @@ class APK:
 
             :rtype: string
         """
-        return self.get_element("uses-sdk", "android:minSdkVersion")
+        return self.get_element("uses-sdk", "minSdkVersion")
 
-    def get_target_sdk_version(self) :
+    def get_target_sdk_version(self):
         """
             Return the android:targetSdkVersion attribute
 
             :rtype: string
         """
-        return self.get_element( "uses-sdk", "android:targetSdkVersion" )
+        return self.get_element( "uses-sdk", "targetSdkVersion" )
 
-    def get_libraries(self) :
+    def get_libraries(self):
         """
             Return the android:name attributes for libraries
 
             :rtype: list
         """
-        return self.get_elements( "uses-library", "android:name" )
+        return self.get_elements( "uses-library", "name" )
 
     def get_certificate(self, filename):
         """
             Return a certificate object by giving the name in the apk file
         """
+		#Added by AndroBugs - Comment only
+        #Install module and download link: http://www.chilkatsoft.com/installPythonLinux.asp
+        #Docs: http://www.chilkatsoft.com/refdoc/pythonCkCertRef.html
+        #DO NOT use this method. 'LoadFromBinary2' is now an unsolved issue: http://code.google.com/p/androguard/issues/detail?id=120
+
+        # import chilkat
+
+        # cert = chilkat.CkCert()
+        # f = self.get_file(filename)
+        # success = cert.LoadFromBinary2(f, str(len(f)))
         import chilkat
 
         cert = chilkat.CkCert()
         f = self.get_file(filename)
-        success = cert.LoadFromBinary2(f, len(f))
-
+        data = chilkat.CkByteData()
+        data.append2(f, len(f))
+        success = cert.LoadFromBinary(data)
         return success, cert
 
-    def new_zip(self, filename, deleted_files=None, new_files={}) :
+
+    def new_zip(self, filename, deleted_files=None, new_files={}):
         """
             Create a new zip file
 
@@ -634,14 +862,17 @@ class APK:
                 return None
 
     def get_signature_name(self):
-        signature_expr = re.compile("^(META-INF/)(.*)(\.RSA)$")
+        #Added by AndroBugs
+        signature_expr = re.compile("^(META-INF/)(.*)(\.RSA|\.DSA|\.EC)$")
+
         for i in self.get_files():
             if signature_expr.search(i):
                 return i
         return None
 
     def get_signature(self):
-        signature_expr = re.compile("^(META-INF/)(.*)(\.RSA)$")
+        #Added by AndroBugs
+        signature_expr = re.compile("^(META-INF/)(.*)(\.RSA|\.DSA|\.EC)$")
         for i in self.get_files():
             if signature_expr.search(i):
                 return self.get_file(i)
@@ -656,11 +887,17 @@ class APK:
                 print "\t", i, self.files[i], "%x" % self.files_crc32[i]
             except KeyError:
                 print "\t", i, "%x" % self.files_crc32[i]
+        
+        print "DECLARED PERMISSIONS:"
+        declared_permissions = self.get_declared_permissions()
+        for i in declared_permissions:
+            print "\t", i
+        
+        print "REQUESTED PERMISSIONS:"
+        requested_permissions = self.get_requested_permissions()
+        for i in requested_permissions:
+            print "\t", i
 
-        print "PERMISSIONS: "
-        details_permissions = self.get_details_permissions()
-        for i in details_permissions:
-            print "\t", i, details_permissions[i]
         print "MAIN ACTIVITY: ", self.get_main_activity()
 
         print "ACTIVITIES: "
@@ -693,14 +930,14 @@ def show_Certificate(cert):
 # Translated from http://code.google.com/p/android4me/source/browse/src/android/content/res/AXmlResourceParser.java
 
 UTF8_FLAG = 0x00000100
+CHUNK_STRINGPOOL_TYPE = 0x001C0001
+CHUNK_NULL_TYPE = 0x00000000
 
-
-class StringBlock:
+class StringBlock(object):
     def __init__(self, buff):
         self.start = buff.get_idx()
         self._cache = {}
-        self.header = unpack('<h', buff.read(2))[0]
-        self.header_size = unpack('<h', buff.read(2))[0]
+        self.header_size, self.header = self.skipNullPadding(buff)
 
         self.chunkSize = unpack('<i', buff.read(4))[0]
         self.stringCount = unpack('<i', buff.read(4))[0]
@@ -743,6 +980,21 @@ class StringBlock:
 
             for i in range(0, size / 4):
                 self.m_styles.append(unpack('<i', buff.read(4))[0])
+
+    def skipNullPadding(self, buff):
+        def readNext(buff, first_run=True):
+            header = unpack('<i', buff.read(4))[0]
+
+            if header == CHUNK_NULL_TYPE and first_run:
+                androconf.info("Skipping null padding in StringBlock header")
+                header = readNext(buff, first_run=False)
+            elif header != CHUNK_STRINGPOOL_TYPE:
+                androconf.warning("Invalid StringBlock header")
+
+            return header
+
+        header = readNext(buff)
+        return header >> 8, header & 0xFF
 
     def getString(self, idx):
         if idx in self._cache:
@@ -849,7 +1101,7 @@ END_TAG                     = 3
 TEXT                        = 4
 
 
-class AXMLParser:
+class AXMLParser(object):
     def __init__(self, raw_buff):
         self.reset()
 
@@ -1011,13 +1263,13 @@ class AXMLParser:
             return u''
 
     def getName(self):
-        if self.m_name == -1 or (self.m_event != START_TAG and self.m_event != END_TAG) :
+        if self.m_name == -1 or (self.m_event != START_TAG and self.m_event != END_TAG):
             return u''
 
         return self.sb.getString(self.m_name)
 
-    def getText(self) :
-        if self.m_name == -1 or self.m_event != TEXT :
+    def getText(self):
+        if self.m_name == -1 or self.m_event != TEXT:
             return u''
 
         return self.sb.getString(self.m_name)
@@ -1038,7 +1290,7 @@ class AXMLParser:
                 self.visited_ns.append(i)
         return buff
 
-    def getNamespaceCount(self, pos) :
+    def getNamespaceCount(self, pos):
         pass
 
     def getAttributeOffset(self, index):
@@ -1070,27 +1322,33 @@ class AXMLParser:
 
         return self.sb.getString(prefix)
 
-    def getAttributeName(self, index) :
+    def getAttributeName(self, index):
         offset = self.getAttributeOffset(index)
         name = self.m_attributes[offset+ATTRIBUTE_IX_NAME]
 
-        if name == -1 :
+        if name == -1:
             return ""
 
-        return self.sb.getString( name )
+        res = self.sb.getString( name )
+        if not res:
+            attr = self.m_resourceIDs[name]
+            if attr in public.SYSTEM_RESOURCES['attributes']['inverse']:
+                res = 'android:'+public.SYSTEM_RESOURCES['attributes']['inverse'][attr]
 
-    def getAttributeValueType(self, index) :
+        return res
+
+    def getAttributeValueType(self, index):
         offset = self.getAttributeOffset(index)
         return self.m_attributes[offset+ATTRIBUTE_IX_VALUE_TYPE]
 
-    def getAttributeValueData(self, index) :
+    def getAttributeValueData(self, index):
         offset = self.getAttributeOffset(index)
         return self.m_attributes[offset+ATTRIBUTE_IX_VALUE_DATA]
 
-    def getAttributeValue(self, index) :
+    def getAttributeValue(self, index):
         offset = self.getAttributeOffset(index)
         valueType = self.m_attributes[offset+ATTRIBUTE_IX_VALUE_TYPE]
-        if valueType == TYPE_STRING :
+        if valueType == TYPE_STRING:
             valueString = self.m_attributes[offset+ATTRIBUTE_IX_VALUE_STRING]
             return self.sb.getString( valueString )
         # WIP
@@ -1128,7 +1386,7 @@ def complexToFloat(xcomplex):
     return (float)(xcomplex & 0xFFFFFF00) * RADIX_MULTS[(xcomplex >> 4) & 3]
 
 
-class AXMLPrinter:
+class AXMLPrinter(object):
     def __init__(self, raw_buff):
         self.axml = AXMLParser(raw_buff)
         self.xmlns = False
@@ -1252,7 +1510,7 @@ RES_TABLE_TYPE_TYPE         = 0x0201
 RES_TABLE_TYPE_SPEC_TYPE    = 0x0202
 
 
-class ARSCParser:
+class ARSCParser(object):
     def __init__(self, raw_buff):
         self.analyzed = False
         self.buff = bytecode.BuffHandle(raw_buff)
@@ -1600,7 +1858,7 @@ class ARSCParser:
         return self.packages[package_name]
 
 
-class PackageContext:
+class PackageContext(object):
     def __init__(self, current_package, stringpool_main, mTableStrings, mKeyStrings):
         self.stringpool_main = stringpool_main
         self.mTableStrings = mTableStrings
@@ -1614,7 +1872,7 @@ class PackageContext:
         self.current_package.mResId = mResId
 
 
-class ARSCHeader:
+class ARSCHeader(object):
     def __init__(self, buff):
         self.start = buff.get_idx()
         self.type = unpack('<h', buff.read(2))[0]
@@ -1624,7 +1882,7 @@ class ARSCHeader:
         #print "ARSCHeader", hex(self.start), hex(self.type), hex(self.header_size), hex(self.size)
 
 
-class ARSCResTablePackage:
+class ARSCResTablePackage(object):
     def __init__(self, buff):
         self.start = buff.get_idx()
         self.id = unpack('<i', buff.read(4))[0]
@@ -1643,7 +1901,7 @@ class ARSCResTablePackage:
         return name
 
 
-class ARSCResTypeSpec:
+class ARSCResTypeSpec(object):
     def __init__(self, buff, parent=None):
         self.start = buff.get_idx()
         self.parent = parent
@@ -1659,7 +1917,7 @@ class ARSCResTypeSpec:
             self.typespec_entries.append(unpack('<i', buff.read(4))[0])
 
 
-class ARSCResType:
+class ARSCResType(object):
     def __init__(self, buff, parent=None):
         self.start = buff.get_idx()
         self.parent = parent
@@ -1679,7 +1937,7 @@ class ARSCResType:
         return self.parent.mTableStrings.getString(self.id - 1)
 
 
-class ARSCResTableConfig:
+class ARSCResTableConfig(object):
     def __init__(self, buff):
         self.start = buff.get_idx()
         self.size = unpack('<i', buff.read(4))[0]
@@ -1701,7 +1959,7 @@ class ARSCResTableConfig:
 
         self.exceedingSize = self.size - 36
         if self.exceedingSize > 0:
-            androconf.warning("too much bytes !")
+            androconf.info("Skipping padding bytes!")
             self.padding = buff.read(self.exceedingSize)
 
         #print "ARSCResTableConfig", hex(self.start), hex(self.size), hex(self.imsi), hex(self.locale), repr(self.get_language()), repr(self.get_country()), hex(self.screenType), hex(self.input), hex(self.screenSize), hex(self.version), hex(self.screenConfig), hex(self.screenSizeDp)
@@ -1715,7 +1973,7 @@ class ARSCResTableConfig:
         return chr(x & 0x00ff) + chr((x & 0xff00) >> 8)
 
 
-class ARSCResTableEntry:
+class ARSCResTableEntry(object):
     def __init__(self, buff, mResId, parent=None):
         self.start = buff.get_idx()
         self.mResId = mResId
@@ -1747,7 +2005,7 @@ class ARSCResTableEntry:
         return (self.flags & 1) == 1
 
 
-class ARSCComplex:
+class ARSCComplex(object):
     def __init__(self, buff, parent=None):
         self.start = buff.get_idx()
         self.parent = parent
@@ -1762,7 +2020,7 @@ class ARSCComplex:
         #print "ARSCComplex", hex(self.start), self.id_parent, self.count, repr(self.parent.mKeyStrings.getString(self.id_parent))
 
 
-class ARSCResStringPoolRef:
+class ARSCResStringPoolRef(object):
     def __init__(self, buff, parent=None):
         self.start = buff.get_idx()
         self.parent = parent
