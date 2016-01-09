@@ -49,6 +49,7 @@ class StaticAnalyzer(object):
         # step 1:Extract
         logger.debug("Unzipping the APK")
         self.unzip()
+        self.decompile()
         return {}
 
     # core method - provides scan as a whole
@@ -98,15 +99,15 @@ class StaticAnalyzer(object):
             "version_name": a.get_androidversion_name(),
             "version_code": a.get_androidversion_code(),
             "activities": a.get_activities(),
-            #"telephony_identifiers_leakage": gather_telephony_identifiers_leakage(dx),
-            #"device_settings_harvesting": gather_device_settings_harvesting(dx),
-            #"location_lookup": gather_location_lookup(dx),
-            #"connection_interfaces_exfiltration": gather_connection_interfaces_exfiltration(dx),
-            #"telephony_services_abuse": gather_telephony_services_abuse(a, dx),
-            #"audio_video_eavesdropping": gather_audio_video_eavesdropping(dx),
-            #"suspicious_connection_establishment": gather_suspicious_connection_establishment(dx),
-            #"PIM_data_leakage": gather_PIM_data_leakage(dx),
-            #"code_execution": gather_code_execution(dx),
+            "telephony_identifiers_leakage": gather_telephony_identifiers_leakage(dx),
+            "device_settings_harvesting": gather_device_settings_harvesting(dx),
+            "location_lookup": gather_location_lookup(dx),
+            "connection_interfaces_exfiltration": gather_connection_interfaces_exfiltration(dx),
+            "telephony_services_abuse": gather_telephony_services_abuse(a, dx),
+            "audio_video_eavesdropping": gather_audio_video_eavesdropping(dx),
+            "suspicious_connection_establishment": gather_suspicious_connection_establishment(dx),
+            "PIM_data_leakage": gather_PIM_data_leakage(dx),
+            "code_execution": gather_code_execution(dx),
             "apis_used": self.get_apis_used(dx),
             "services": a.get_services(),
             "providers": a.get_providers(),
@@ -285,7 +286,6 @@ class StaticAnalyzer(object):
         return RET
 
     def decompile(self):
-        # search through the uploads folder
         jadx = os.path.join(TOOLS_DIR, 'jadx/bin/jadx')
         args = [jadx, "-d", self.decompile_dir, self.apk]
         fire_jadx = subprocess.Popen(args, stdout=subprocess.PIPE,
