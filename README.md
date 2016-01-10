@@ -27,6 +27,12 @@ A mobile pentesting framework written in Python. It is intended to have to 2 maj
 
 ![4.png](http://i.imgur.com/g1UD9hY.png)
 
+## ROADMAP
+
+ - [ ] Run the scan separately from the main Flask thread (blocking) - Highest priority
+ - [ ] Refactor
+ - [ ] PDF report generation
+
 
 ## TOOLS INCLUDED
 
