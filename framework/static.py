@@ -9,13 +9,12 @@ import hashlib
 from framework.log import logger
 from webapp.settings import UPLOADS_DIR, TOOLS_DIR, OUTPUT_DIR
 
-# Adjust PYTHONPATH
-import androlyze as anz
-from androguard.core.bytecodes import apk
-from androguard.core.bytecodes import dvm
-from androguard.core.analysis import analysis
-from androguard.core.analysis import analysis
-from androguard.core.bytecodes.apk import *
+import tools.androguard.androlyze as anz
+from tools.androguard.androguard.core.bytecodes import apk
+from tools.androguard.androguard.core.bytecodes import dvm
+from tools.androguard.androguard.core.analysis import analysis
+from tools.androguard.androguard.core.analysis import analysis
+from tools.androguard.androguard.core.bytecodes.apk import *
 
 # Androwarn modules import
 from framework.core import *

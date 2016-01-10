@@ -18,9 +18,9 @@ import os
 import hashlib
 
 from framework.log import logger
-from androguard.core import androconf
-from androguard.core.analysis import analysis
-from androguard.core.bytecodes import apk, dvm
+from tools.androguard.tools.androguard.androguard.core import androconf
+from tools.androguard.androguard.core.analysis import analysis
+from tools.androguard.androguard.core.bytecodes import apk, dvm
 from framework import graph
 from framework.graph import PERM_LEVEL_DANGEROUS, PERM_LEVEL_NORMAL,\
     PERM_LEVEL_SIGNATURE, PERM_LEVEL_SIGNATUREORSYSTEM

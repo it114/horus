@@ -21,8 +21,8 @@
 
 
 # Androguard imports
-from androguard.core.analysis import analysis
-from androguard.core.bytecodes.apk import *
+from tools.androguard.androguard.core.analysis import analysis
+from tools.androguard.androguard.core.bytecodes.apk import *
 
 # Androwarn modules import
 from framework.core import *

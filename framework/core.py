@@ -23,7 +23,7 @@
 import re
 
 # Androguard imports
-from androguard.core.analysis.analysis import *
+from tools.androguard.androguard.core.analysis.analysis import *
 
 # Androwarn modules import
 from framework.api_constants import *

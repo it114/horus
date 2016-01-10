@@ -17,11 +17,11 @@
 from xml.sax.saxutils import escape
 
 from framework.log import logger
-from androguard.core import bytecode
-from androguard.core.analysis import analysis
-from androguard.core.bytecodes.dvm_permissions import DVM_PERMISSIONS, MANIFEST_PERMISSIONS
-from androguard.core.bytecodes.api_permissions import DVM_PERMISSIONS_BY_API_CALLS
-from androguard.core.analysis.analysis import PathVar
+from tools.androguard.androguard.core import bytecode
+from tools.androguard.androguard.core.analysis import analysis
+from tools.androguard.androguard.core.bytecodes.dvm_permissions import DVM_PERMISSIONS, MANIFEST_PERMISSIONS
+from tools.androguard.androguard.core.bytecodes.api_permissions import DVM_PERMISSIONS_BY_API_CALLS
+from tools.androguard.androguard.core.analysis.analysis import PathVar
 
 from networkx.classes.digraph import DiGraph
 
