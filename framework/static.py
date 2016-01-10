@@ -8,7 +8,6 @@ import time
 import hashlib
 from framework.log import logger
 from webapp.settings import UPLOADS_DIR, TOOLS_DIR, OUTPUT_DIR
-from webapp.utils import post_multipart
 
 # Adjust PYTHONPATH
 import androlyze as anz
@@ -324,11 +323,8 @@ class StaticAnalyzer(object):
         sha256_val = sha256.hexdigest()
         return {"md5": md5_val, "sha1": sha1_val, "sha256": sha256_val}
 
+    """
     def virustotal_check(self):
-        """
-        Upload the file to VirusTotal and get the results (via the API)
-        :rtype: JSON
-        """
         with open(self.apk, 'rb') as data:
             app = data.read()
         host = "www.virustotal.com"
@@ -345,6 +341,7 @@ class StaticAnalyzer(object):
         response = json.loads(urllib2.urlopen(req).read())
 
         return response["scans"]
+    """
 
     def grab_application_name_description_icon(self, package_name) :
         """

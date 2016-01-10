@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, flash, request, redirect, url_for,
 from werkzeug import secure_filename
 from webapp.extensions import cache
 from webapp.settings import UPLOADS_DIR, OUTPUT_DIR
-from webapp.utils import crossdomain, allowed_file
+from webapp.utils import allowed_file
 from framework.log import logger
 from webapp.models import db, StaticAnalyzerAndroid
 from framework.static import StaticAnalyzer
@@ -78,13 +78,6 @@ def dynamic(app_name, status):
 @main.route("/graph/<app>")
 def graph(app):
     return render_template('graph.html')
-
-@main.route("/cfg/<path:filename>")
-@crossdomain(origin="*")
-def fetch_gexf(filename):
-    app = filename.split(".apk_final")[0]
-    return send_from_directory(os.path.join(OUTPUT_DIR, app), filename)
-
 
 class GetAllApps(Resource):
     def get(self):
