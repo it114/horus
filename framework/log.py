@@ -1,6 +1,7 @@
 import os
 import logging
-from webapp.settings import LOGS_FOLDER
+from framework.interface.settings import LOGS_FOLDER
+
 
 # create logger
 logger = logging.getLogger('horus')

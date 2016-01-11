@@ -2,7 +2,6 @@ import tornado.httpserver
 import tornado.ioloop
 from tornado import options
 import tornado.web
-import tornado.autoreload
 
 from framework.interface.settings import settings
 from framework.interface.urls import url_patterns
@@ -16,7 +15,7 @@ class ApplicationServer(tornado.web.Application):
 def main():
     app = ApplicationServer()
     http_server = tornado.httpserver.HTTPServer(app)
-    http_server.listen(options.port)
+    http_server.listen(5000)
     tornado.ioloop.IOLoop.instance().start()
 
 

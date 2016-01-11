@@ -7,7 +7,7 @@ import os
 import time
 import hashlib
 from framework.log import logger
-from webapp.settings import UPLOADS_DIR, TOOLS_DIR, OUTPUT_DIR
+from framework.interface.settings import UPLOADS_DIR, TOOLS_DIR, OUTPUT_DIR
 
 import tools.androguard.androlyze as anz
 from tools.androguard.androguard.core.bytecodes import apk
