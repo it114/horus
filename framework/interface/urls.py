@@ -1,4 +1,4 @@
-from webapp.handlers import base, main
+from framework.interface.handlers import base, main
 
 
 url_patterns = [

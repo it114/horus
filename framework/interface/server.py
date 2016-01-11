@@ -3,10 +3,9 @@ import tornado.ioloop
 from tornado import options
 import tornado.web
 import tornado.autoreload
-import tornado.web
 
-from webapp.settings import settings
-from webapp.urls import url_patterns
+from framework.interface.settings import settings
+from framework.interface.urls import url_patterns
 
 
 class ApplicationServer(tornado.web.Application):

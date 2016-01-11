@@ -1,6 +1,5 @@
 import tornado.web
-from webapp.handlers.base import APIRequestHandler,
-                                 UIRequestHandler
+from framework.interface.handlers.base import APIRequestHandler, UIRequestHandler
 
 from framework.static import StaticAnalyzer
 
