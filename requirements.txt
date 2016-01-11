@@ -1,7 +1,7 @@
-ipython==4.0.0
 tornado
 networkx==1.10
 pydot==1.0.2
 python-dateutil==2.4.2
 requests==2.4.1
+futures
 SQLAlchemy==0.8.2
