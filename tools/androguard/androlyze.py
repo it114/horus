@@ -22,7 +22,7 @@ import sys
 
 from optparse import OptionParser
 
-from tools.androguard.tools.androguard.androguard.core import *
+from tools.androguard.androguard.core import *
 from tools.androguard.androguard.core.androgen import *
 from tools.androguard.androguard.core.androconf import *
 from tools.androguard.androguard.core.bytecode import *

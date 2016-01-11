@@ -18,7 +18,7 @@ import os
 import hashlib
 
 from framework.log import logger
-from tools.androguard.tools.androguard.androguard.core import androconf
+from tools.androguard.androguard.core import androconf
 from tools.androguard.androguard.core.analysis import analysis
 from tools.androguard.androguard.core.bytecodes import apk, dvm
 from framework import graph
