@@ -4,7 +4,7 @@
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
     <head>
-        <title>{% block title %}{% endblock %}</title>
+        <title>{% block title %}{% end %}</title>
         <meta charset="utf-8">
         <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,14 +12,18 @@
         {% block meta %}
             <meta name="description" content="">
             <meta name="author" content="">
-        {% endblock %}
-
-        {% assets "common_css" %}
-            <link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
-        {% endassets %}
+        {% end %}
+        <link rel="stylesheet" type="text/css" href='static/css/vendor/bootstrap.min.css' />
+        <link rel="stylesheet" type="text/css" href='static/css/vendor/helper.css' />
+        <link rel="stylesheet" type="text/css" href='static/css/span-fix.css' />
+        <link rel="stylesheet" type="text/css" href='static/css/main.css' />
+        <link rel="stylesheet" type="text/css" href='static/css/spinner.css' />
+        <link rel="stylesheet" type="text/css" href='static/css/vendor/font-awesome.min.css' />
+        <link rel="stylesheet" type="text/css" href='static/css/admin.css' />
+        <link rel="stylesheet" type="text/css" href='static/css/skin-blue.css' />
 
         {% block css %}
-        {% endblock %}
+        {% end %}
     </head>
 
     <body class="hold-transition skin-blue sidebar-mini">
@@ -62,67 +66,54 @@
       <!-- Page content -->
       <div class="content-wrapper">
         <section class="content">
-				<!-- flash any messages we may have -->  
-				{% with messages = get_flashed_messages(with_categories=true) %}
-					{% if messages %}
-						<ul class=flashes>
-						{% for category, message in messages %}
-						<div {% if category == 'message' %} class="alert alert-success alert-dismissable" {% else %} class="alert alert-{{category}} alert-dismissable" {%endif%} role="alert">
-							<button type="button" class="close" data-dismiss="alert">
-							<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
-							</button>
-							{{message}}
-						</div>
-						{% endfor %}
-						</ul>
-					{% endif %}
-				{% endwith %}
 				{% block body %}
-				{% endblock %}
+				{% end %}
         </section>
 	  </div>
     </div>
-        {% assets "common_js" %}
-            <script type="text/javascript" src="{{ ASSET_URL }}"></script>
-            <script>
-                // Function to activate overlay and spinner
-                function addOverlay(selector) {
-                    var div = $(selector);
-                    // Get all the position related stuff
-                    pos = $.extend({
-                    width: div.outerWidth(true), // true to include margin
-                    height: div.outerHeight(true)
-                    }, div.position());
-                    // Add overlay
-                    var overlayDiv = $('<div>', {
-                        class: 'overlay',
-                        css: {
-                            position: 'absolute',
-                            top: pos.top,
-                            left: pos.left,
-                            width: pos.width,
-                            height: pos.height,
-                            backgroundColor: '#FFFFFF',
-                            opacity: 0.50
-                        }
-                    });
-                    var spinnerDiv = $('<div class="three-quarters"></div>');
-                    overlayDiv.appendTo(div);
-                    spinnerDiv.appendTo(overlayDiv);
-                    spinnerDiv.css({
-                        top: overlayDiv.height()/2 - spinnerDiv.height()/2 ,
-                        left: overlayDiv.width()/2 - spinnerDiv.width()/2
-                    });
+    <script type="text/javascript" src='static/js/vendor/jquery.min.js'></script>
+    <script type="text/javascript" src='static/js/vendor/bootstrap.min.js'></script>
+    <script type="text/javascript" src='static/js/app.min.js'></script>
+    <script type="text/javascript" src='static/js/main.js'></script>
+    <script>
+        // Function to activate overlay and spinner
+        function addOverlay(selector) {
+            var div = $(selector);
+            // Get all the position related stuff
+            pos = $.extend({
+            width: div.outerWidth(true), // true to include margin
+            height: div.outerHeight(true)
+            }, div.position());
+            // Add overlay
+            var overlayDiv = $('<div>', {
+                class: 'overlay',
+                css: {
+                    position: 'absolute',
+                    top: pos.top,
+                    left: pos.left,
+                    width: pos.width,
+                    height: pos.height,
+                    backgroundColor: '#FFFFFF',
+                    opacity: 0.50
                 }
+            });
+            var spinnerDiv = $('<div class="three-quarters"></div>');
+            overlayDiv.appendTo(div);
+            spinnerDiv.appendTo(overlayDiv);
+            spinnerDiv.css({
+                top: overlayDiv.height()/2 - spinnerDiv.height()/2 ,
+                left: overlayDiv.width()/2 - spinnerDiv.width()/2
+            });
+        }
 
-                // Function to remove overlay & spinner
-                function removeOverlay(selector) {
-                    $(selector+'.overlay').remove();
-                }
-            </script>
-        {% endassets %}
+        // Function to remove overlay & spinner
+        function removeOverlay(selector) {
+            $(selector+'.overlay').remove();
+        }
+    </script>
 
-        {% block js %}
-        {% endblock %}
+    {% block js %}
+    {% end %}
+
     </body>
 </html>
