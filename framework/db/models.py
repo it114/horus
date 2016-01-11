@@ -10,7 +10,7 @@ import datetime
 Base = declarative_base()
 
 
-class StaticAnalyzerAndroid(Base):
+class StaticAnalyzer(Base):
     __tablename__ = "static_analyzer"
 
     id = Column(Integer, primary_key=True, autoincrement=True)

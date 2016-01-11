@@ -11,7 +11,13 @@ import tornado.template
 from urllib import quote_plus
 
 
-class APIRequestHandler(tornado.web.RequestHandler):
+class BaseHandler(tornado.web.RequestHandler):
+  @property
+  def db(self):
+    return self.application.db
+
+
+class APIRequestHandler(BaseHandler):
 
     def write(self, chunk):
         if isinstance(chunk, list):
@@ -21,7 +27,7 @@ class APIRequestHandler(tornado.web.RequestHandler):
             super(APIRequestHandler, self).write(chunk)
 
 
-class UIRequestHandler(tornado.web.RequestHandler):
+class UIRequestHandler(BaseHandler):
     def reverse_url(self, name, *args):
         url = super(UIRequestHandler, self).reverse_url(name, *args)
         url = url.replace('?','')
