@@ -15,8 +15,13 @@ class StaticAnalyzer(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, unique=True)
-    info = Column(String, unique=True)
+    info = Column(String)
     status = Column(String)
+
+    def __init__(self, name, info, status):
+        self.name = name
+        self.info = info
+        self.status = status
 
     def __repr__(self):
         return self.name

@@ -226,11 +226,10 @@
 
 {% block js %}
 <script>
-var list = document.URL.split("/");
-var app = list[list.length-2];
-console.log(list);
-var status = list[list.length-1].indexOf("Finished" || "Running");
+var app = "{{ app }}";
+var status = "{{ status }}";
 
+console.log(app, status);
 
 function setStatus(status) {
     $.post("/api/"+app+"/status="+status, function(data) {
