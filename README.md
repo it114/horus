@@ -14,8 +14,7 @@ A mobile pentesting framework written in Python. It is intended to have to 2 maj
 3. Set-up a virtualenv, say `env` by running `mkvirtualenv env -p /usr/bin/python2`.
 4. Activate the virtualenv `source env/bin/activate`.
 5. Install dependencies using `pip install -r requirements.txt`.
-6. Create a DB based on the models, `python manage.py createdb`.
-7. Run the Flask server using `python manage.py runserver`.
+7. Run the application server using `python horus.py`.
 
 ## Screenshots
 
@@ -30,7 +29,7 @@ A mobile pentesting framework written in Python. It is intended to have to 2 maj
 ## ROADMAP
 
  - [ ] Run the scan separately from the main Flask thread (blocking) - Highest priority
- - [ ] Refactor
+ - [x] Refactor
  - [ ] PDF report generation
 
 
