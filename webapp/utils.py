@@ -1,7 +1,3 @@
-import httplib
-import mimetypes
-import contextlib
-import io
 from contextlib import contextmanager
 
 

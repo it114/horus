@@ -1,20 +1,22 @@
-from flask.ext.sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import Table, Column, Integer, String, Boolean,\
+    Float, DateTime, ForeignKey, Text, Index
+from sqlalchemy import UniqueConstraint
+from sqlalchemy.orm import relationship
+import datetime
 
-db = SQLAlchemy()
+
+Base = declarative_base()
 
 
-class StaticAnalyzerAndroid(db.Model):
+class StaticAnalyzerAndroid(Base):
     __tablename__ = "static_analyzer"
 
-    id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
-    name = db.Column(db.String())
-    info = db.Column(db.String())
-    status = db.Column(db.String())
-
-    def __init__(self, name, info, status):
-        self.name = name
-        self.info = info
-        self.status = status
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, unique=True)
+    info = Column(String, unique=True)
+    status = Column(String)
 
     def __repr__(self):
         return self.name
