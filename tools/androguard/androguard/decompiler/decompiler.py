@@ -20,9 +20,9 @@ from subprocess import Popen, PIPE, STDOUT
 import tempfile
 import os
 
-from androguard.core.androconf import rrmdir
-from androguard.decompiler.dad import decompile
-from androguard.util import read
+from tools.androguard.androguard.core.androconf import rrmdir
+from tools.androguard.androguard.decompiler.dad import decompile
+from tools.androguard.androguard.util import read
 
 PYGMENTS = True
 try:

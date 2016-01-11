@@ -5,10 +5,10 @@
 import argparse
 import sys
 
-from androguard.core import androconf
+from tools.androguard.androguard.core import androconf
 from PySide import QtCore, QtGui
 
-from androguard.gui.mainwindow import MainWindow
+from tools.androguard.androguard.gui.mainwindow import MainWindow
 
 if __name__ == '__main__':
 

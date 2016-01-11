@@ -18,7 +18,7 @@
 
 import random
 
-from androconf import error
+from tools.androguard.androconf import error
 import jvm
 
 class Automaton :

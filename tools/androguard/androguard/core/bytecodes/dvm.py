@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Androguard.  If not, see <http://www.gnu.org/licenses/>.
 
-from androguard.core import bytecode
-from androguard.core.androconf import CONF, debug, warning, is_android_raw
+from tools.androguard.androguard.core import bytecode
+from tools.androguard.androguard.core.androconf import CONF, debug, warning, is_android_raw
 
 import sys
 import re

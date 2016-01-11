@@ -20,8 +20,8 @@ from struct import pack, unpack, calcsize
 from collections import namedtuple
 import re, zipfile, StringIO, os
 
-from androguard.core import bytecode
-from androguard.core.bytecode import SV, SVs
+from tools.androguard.androguard.core import bytecode
+from tools.androguard.androguard.core.bytecode import SV, SVs
 
 
 ######################################################## JAR FORMAT ########################################################

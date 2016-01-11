@@ -17,14 +17,14 @@
 
 import logging
 from collections import defaultdict
-from androguard.decompiler.dad.basic_blocks import (CatchBlock,
+from tools.androguard.androguard.decompiler.dad.basic_blocks import (CatchBlock,
                                                     Condition,
                                                     LoopBlock,
                                                     ShortCircuitBlock,
                                                     TryBlock)
-from androguard.decompiler.dad.graph import Graph
-from androguard.decompiler.dad.node import Interval
-from androguard.decompiler.dad.util import common_dom
+from tools.androguard.androguard.decompiler.dad.graph import Graph
+from tools.androguard.androguard.decompiler.dad.node import Interval
+from tools.androguard.androguard.decompiler.dad.util import common_dom
 
 
 logger = logging.getLogger('dad.control_flow')

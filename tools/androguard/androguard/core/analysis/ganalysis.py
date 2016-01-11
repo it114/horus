@@ -19,10 +19,10 @@
 from networkx import DiGraph
 from xml.sax.saxutils import escape
 
-from androguard.core import bytecode
-from androguard.core.bytecodes.dvm_permissions import DVM_PERMISSIONS
-from androguard.core.analysis.risk import PERMISSIONS_RISK, INTERNET_RISK, PRIVACY_RISK, PHONE_RISK, SMS_RISK, MONEY_RISK
-from androguard.core.analysis.analysis import TAINTED_PACKAGE_CREATE
+from tools.androguard.androguard.core import bytecode
+from tools.androguard.androguard.core.bytecodes.dvm_permissions import DVM_PERMISSIONS
+from tools.androguard.androguard.core.analysis.risk import PERMISSIONS_RISK, INTERNET_RISK, PRIVACY_RISK, PHONE_RISK, SMS_RISK, MONEY_RISK
+from tools.androguard.androguard.core.analysis.analysis import TAINTED_PACKAGE_CREATE
 
 DEFAULT_RISKS = {
     INTERNET_RISK : ( "INTERNET_RISK", (195, 255, 0) ),

@@ -20,8 +20,8 @@
 
 import sys
 
-from androguard.core import androconf
-from androguard.util import read
+from tools.androguard.androguard.core import androconf
+from tools.androguard.androguard.util import read
 
 sys.path.append("./elsim/")
 from elsim.elsign import dalvik_elsign

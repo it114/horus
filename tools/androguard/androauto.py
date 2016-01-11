@@ -21,8 +21,8 @@
 import sys
 
 from optparse import OptionParser
-from androguard.core.analysis import auto
-from androguard.core.androconf import set_debug
+from tools.androguard.androguard.core.analysis import auto
+from tools.androguard.androguard.core.androconf import set_debug
 
 option_0 = {'name': ('-d', '--directory'), 'help': 'directory input', 'nargs': 1}
 option_1 = {'name': ('-v', '--verbose'), 'help': 'add debug', 'action': 'count'}

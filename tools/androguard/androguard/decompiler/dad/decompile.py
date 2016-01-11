@@ -21,23 +21,23 @@ sys.path.append('./')
 import logging
 import struct
 from collections import defaultdict
-import androguard.core.androconf as androconf
-import androguard.decompiler.dad.util as util
-from androguard.core.analysis import analysis
-from androguard.core.bytecodes import apk, dvm
-from androguard.decompiler.dad.ast import (JSONWriter, parse_descriptor,
+import tools.androguard.androguard.core.androconf as androconf
+import tools.androguard.androguard.decompiler.dad.util as util
+from tools.androguard.androguard.core.analysis import analysis
+from tools.androguard.androguard.core.bytecodes import apk, dvm
+from tools.androguard.androguard.decompiler.dad.ast import (JSONWriter, parse_descriptor,
     literal_string, literal_null, literal_int, literal_long, literal_float,
     literal_double, literal_bool, literal_hex_int, dummy)
-from androguard.decompiler.dad.control_flow import identify_structures
-from androguard.decompiler.dad.dataflow import (build_def_use,
+from tools.androguard.androguard.decompiler.dad.control_flow import identify_structures
+from tools.androguard.androguard.decompiler.dad.dataflow import (build_def_use,
                                                 place_declarations,
                                                 dead_code_elimination,
                                                 register_propagation,
                                                 split_variables)
-from androguard.decompiler.dad.graph import construct, simplify, split_if_nodes
-from androguard.decompiler.dad.instruction import Param, ThisParam
-from androguard.decompiler.dad.writer import Writer
-from androguard.util import read
+from tools.androguard.androguard.decompiler.dad.graph import construct, simplify, split_if_nodes
+from tools.androguard.androguard.decompiler.dad.instruction import Param, ThisParam
+from tools.androguard.androguard.decompiler.dad.writer import Writer
+from tools.androguard.androguard.util import read
 
 
 def auto_vm(filename):

@@ -1,5 +1,5 @@
 from PySide import QtCore, QtGui
-from androguard.core import androconf
+from tools.androguard.androguard.core import androconf
 
 class RenameDialog(QtGui.QDialog):
     '''

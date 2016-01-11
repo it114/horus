@@ -25,12 +25,12 @@ import re
 
 from optparse import OptionParser
 
-from androguard.core.androgen import Androguard
-from androguard.core import androconf
-from androguard.core.analysis import analysis
-from androguard.core.bytecodes import dvm
-from androguard.core.bytecode import method2dot, method2format
-from androguard.decompiler import decompiler
+from tools.androguard.androguard.core.androgen import Androguard
+from tools.androguard.androguard.core import androconf
+from tools.androguard.androguard.core.analysis import analysis
+from tools.androguard.androguard.core.bytecodes import dvm
+from tools.androguard.androguard.core.bytecode import method2dot, method2format
+from tools.androguard.androguard.decompiler import decompiler
 
 option_0 = { 'name' : ('-i', '--input'), 'help' : 'file : use this filename', 'nargs' : 1 }
 option_1 = { 'name' : ('-o', '--output'), 'help' : 'base directory to output all files', 'nargs' : 1 }

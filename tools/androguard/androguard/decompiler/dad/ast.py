@@ -17,7 +17,7 @@
 '''This file is a simplified version of writer.py that outputs an AST instead of source code.'''
 import struct
 
-from androguard.decompiler.dad import basic_blocks, instruction, opcode_ins
+from tools.androguard.androguard.decompiler.dad import basic_blocks, instruction, opcode_ins
 
 def array_access(arr, ind): return ['ArrayAccess', [arr, ind]]
 def array_creation(tn, params, dim): return ['ArrayCreation', [tn] + params, dim]

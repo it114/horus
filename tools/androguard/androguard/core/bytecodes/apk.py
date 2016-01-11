@@ -17,10 +17,10 @@
 # along with Androguard.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from androguard.core import bytecode
-from androguard.core import androconf
-from androguard.core.bytecode import SV
-from androguard.core.bytecodes.dvm_permissions import DVM_PERMISSIONS
+from tools.androguard.androguard.core import bytecode
+from tools.androguard.androguard.core import androconf
+from tools.androguard.androguard.core.bytecode import SV
+from tools.androguard.androguard.core.bytecodes.dvm_permissions import DVM_PERMISSIONS
 
 import zipfile, StringIO
 from struct import pack, unpack

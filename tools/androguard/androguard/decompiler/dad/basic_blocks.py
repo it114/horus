@@ -17,10 +17,10 @@
 
 import logging
 from collections import defaultdict
-from androguard.decompiler.dad.opcode_ins import INSTRUCTION_SET
-from androguard.decompiler.dad.instruction import MoveExceptionExpression
-from androguard.decompiler.dad.node import Node
-from androguard.decompiler.dad.util import get_type
+from tools.androguard.androguard.decompiler.dad.opcode_ins import INSTRUCTION_SET
+from tools.androguard.androguard.decompiler.dad.instruction import MoveExceptionExpression
+from tools.androguard.androguard.decompiler.dad.node import Node
+from tools.androguard.androguard.decompiler.dad.util import get_type
 
 logger = logging.getLogger('dad.basic_blocks')
 

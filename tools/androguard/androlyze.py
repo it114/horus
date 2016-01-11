@@ -22,20 +22,20 @@ import sys
 
 from optparse import OptionParser
 
-from androguard.core import *
-from androguard.core.androgen import *
-from androguard.core.androconf import *
-from androguard.core.bytecode import *
-from androguard.core.bytecodes.dvm import *
-from androguard.core.bytecodes.apk import *
+from tools.androguard.tools.androguard.androguard.core import *
+from tools.androguard.androguard.core.androgen import *
+from tools.androguard.androguard.core.androconf import *
+from tools.androguard.androguard.core.bytecode import *
+from tools.androguard.androguard.core.bytecodes.dvm import *
+from tools.androguard.androguard.core.bytecodes.apk import *
 
-from androguard.core.analysis.analysis import *
-from androguard.core.analysis.ganalysis import *
-from androguard.core.analysis.risk import *
-from androguard.decompiler.decompiler import *
+from tools.androguard.androguard.core.analysis.analysis import *
+from tools.androguard.androguard.core.analysis.ganalysis import *
+from tools.androguard.androguard.core.analysis.risk import *
+from tools.androguard.androguard.decompiler.decompiler import *
 
-from androguard.util import *
-from androguard.misc import *
+from tools.androguard.androguard.util import *
+from tools.androguard.androguard.misc import *
 
 from IPython.terminal.embed import InteractiveShellEmbed
 from IPython.config.loader import Config

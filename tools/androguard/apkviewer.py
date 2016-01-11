@@ -21,11 +21,11 @@
 import sys, os
 from optparse import OptionParser
 
-from androguard.core.bytecodes import apk, dvm
-from androguard.core.data import data
-from androguard.core.analysis import analysis, ganalysis
-from androguard.core import androconf
-from androguard.util import read
+from tools.androguard.androguard.core.bytecodes import apk, dvm
+from tools.androguard.androguard.core.data import data
+from tools.androguard.androguard.core.analysis import analysis, ganalysis
+from tools.androguard.androguard.core import androconf
+from tools.androguard.androguard.util import read
 
 option_0 = { 'name' : ('-i', '--input'), 'help' : 'filename input (dex, apk)', 'nargs' : 1 }
 option_1 = { 'name' : ('-o', '--output'), 'help' : 'directory output', 'nargs' : 1 }

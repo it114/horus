@@ -18,10 +18,10 @@
 
 import re, random, string, cPickle
 
-from androguard.core.androconf import error, warning, debug, is_ascii_problem
-from androguard.core.androconf import error, warning
-from androguard.core.bytecodes import jvm, dvm
-from androguard.core.bytecodes.api_permissions import DVM_PERMISSIONS_BY_PERMISSION, DVM_PERMISSIONS_BY_ELEMENT
+from tools.androguard.androguard.core.androconf import error, warning, debug, is_ascii_problem
+from tools.androguard.androguard.core.androconf import error, warning
+from tools.androguard.androguard.core.bytecodes import jvm, dvm
+from tools.androguard.androguard.core.bytecodes.api_permissions import DVM_PERMISSIONS_BY_PERMISSION, DVM_PERMISSIONS_BY_ELEMENT
 
 class ContextField :
     def __init__(self, mode) :

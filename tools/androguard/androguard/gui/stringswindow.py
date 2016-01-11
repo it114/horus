@@ -1,5 +1,5 @@
 from PySide import QtCore, QtGui
-from androguard.gui.xrefwindow import XrefDialogString
+from tools.androguard.androguard.gui.xrefwindow import XrefDialogString
 
 class StringsWindow(QtGui.QWidget):
     def __init__(self, parent=None, win=None, session=None):

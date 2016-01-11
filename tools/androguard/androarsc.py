@@ -23,9 +23,9 @@ from optparse import OptionParser
 from xml.dom import minidom
 import codecs
 
-from androguard.core import androconf
-from androguard.core.bytecodes import apk
-from androguard.util import read
+from tools.androguard.androguard.core import androconf
+from tools.androguard.androguard.core.bytecodes import apk
+from tools.androguard.androguard.util import read
 
 
 option_0 = { 'name' : ('-i', '--input'), 'help' : 'filename input (APK or android resources(arsc))', 'nargs' : 1 }
