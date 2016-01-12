@@ -42,9 +42,6 @@ class IndexHandler(UIRequestHandler):
 class DashboardHandler(UIRequestHandler):
     SUPPORTED_METHODS = ['GET']
 
-    executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
-
-    @tornado.gen.coroutine
     def get(self):
         apps = self.db.session.query(models.StaticAnalyzer).all() or []
 
@@ -55,7 +52,7 @@ class DashboardHandler(UIRequestHandler):
                 self.render('report.html', app=app_name.strip('.apk'), status="Finished")
             else:
                 logger.warn("Scan in progress...")
-                info = yield self.extract_and_decompile(app_name)
+                info = self.extract_and_decompile(app_name)
                 db_obj = models.StaticAnalyzer(app_name.strip('.apk'),
                                                 info,
                                                 "Running")
@@ -65,7 +62,6 @@ class DashboardHandler(UIRequestHandler):
         else:
             self.render('dashboard.html', apps=apps)
 
-    @run_on_executor
     def extract_and_decompile(self, app_name):
         scan_obj = StaticAnalyzer(app_name)
         return json.dumps(scan_obj.init())

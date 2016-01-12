@@ -17,7 +17,7 @@
 # along with Androguard.  If not, see <http://www.gnu.org/licenses/>.
 
 # risks from classes.dex :
-    # API <-> Permissions 
+    # API <-> Permissions
         # method X is more dangerous than another one
     # const-string -> apk-tool
         # v0 <- X
@@ -31,15 +31,15 @@
 
 GENERAL_RISK            = 0
 DANGEROUS_RISK          = 1
-SIGNATURE_SYSTEM_RISK   = 2 
+SIGNATURE_SYSTEM_RISK   = 2
 SIGNATURE_RISK          = 3
 NORMAL_RISK             = 4
 
-MONEY_RISK              = 5 
+MONEY_RISK              = 5
 SMS_RISK                = 6
 PHONE_RISK              = 7
 INTERNET_RISK           = 8
-PRIVACY_RISK            = 9 
+PRIVACY_RISK            = 9
 DYNAMIC_RISK            = 10
 
 BINARY_RISK             = 11
@@ -50,7 +50,7 @@ RISK_VALUES = {
     SIGNATURE_SYSTEM_RISK   : 10,
     SIGNATURE_RISK          : 10,
     NORMAL_RISK             : 0,
-    
+
     MONEY_RISK              : 5,
     SMS_RISK                : 5,
     PHONE_RISK              : 5,
@@ -71,7 +71,7 @@ GENERAL_PERMISSIONS_RISK = {
 
 PERMISSIONS_RISK = {
     "SEND_SMS"                  : [ MONEY_RISK, SMS_RISK ],
-    
+
     "RECEIVE_SMS"               : [ SMS_RISK ],
     "READ_SMS"                  : [ SMS_RISK ],
     "WRITE_SMS"                 : [ SMS_RISK ],
@@ -85,7 +85,7 @@ PERMISSIONS_RISK = {
 
 
     "INTERNET"                  : [ MONEY_RISK, INTERNET_RISK ],
-    
+
     "READ_PHONE_STATE"          : [ PRIVACY_RISK ],
     "READ_CONTACTS"             : [ PRIVACY_RISK ],
     "READ_HISTORY_BOOKMARKS"    : [ PRIVACY_RISK ],
@@ -103,11 +103,11 @@ AVERAGE_MALWARE_RISK        = "average"
 HIGH_MALWARE_RISK           = "high"
 UNACCEPTABLE_MALWARE_RISK   = "unacceptable"
 
-from androguard.core.androconf import error, warning, debug, set_debug, get_debug
-from androguard.core.bytecodes import dvm
-from androguard.core.analysis import analysis
+from tools.androguard.androguard.core.androconf import error, warning, debug, set_debug, get_debug
+from tools.androguard.androguard.core.bytecodes import dvm
+from tools.androguard.androguard.core.analysis import analysis
 
-from androguard.core.bytecodes.dvm_permissions import DVM_PERMISSIONS
+from tools.androguard.androguard.core.bytecodes.dvm_permissions import DVM_PERMISSIONS
 
 def add_system_rule(system, rule_name, rule) :
     system.rules[ rule_name ] = rule
@@ -146,7 +146,7 @@ def create_system_risk() :
     input_Binary_Risk = fuzzy.InputVariable.InputVariable(fuzzify=fuzzy.fuzzify.Plain.Plain())
     input_Internet_Risk = fuzzy.InputVariable.InputVariable(fuzzify=fuzzy.fuzzify.Plain.Plain())
     input_Dynamic_Risk = fuzzy.InputVariable.InputVariable(fuzzify=fuzzy.fuzzify.Plain.Plain())
-    
+
     # Input variables
 
         # Dangerous Risk
@@ -166,7 +166,7 @@ def create_system_risk() :
     input_Privacy_Risk.adjectives[LOW_RISK] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(0.0, 1.0), (6.0, 1.0), (10.0, 0.0)]) )
     input_Privacy_Risk.adjectives[HIGH_RISK] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(6.0, 0.0), (10.0, 1.0), (20.0, 0.0)]) )
     input_Privacy_Risk.adjectives[UNACCEPTABLE_RISK] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(15.0, 0.0), (20.0, 1.0), (30.0, 1.0)]) )
-    
+
         # Binary Risk
     system.variables["input_Binary_Risk"] = input_Binary_Risk
     input_Binary_Risk.adjectives[LOW_RISK] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(0.0, 1.0), (6.0, 1.0), (10.0, 0.0)]) )
@@ -190,30 +190,30 @@ def create_system_risk() :
                             description="malware risk",
                             min=0.0,max=100.0,
                         )
-    
+
     #output_malware_risk = fuzzy.OutputVariable.OutputVariable(defuzzify=fuzzy.defuzzify.Dict.Dict())
 
     output_malware_risk.adjectives[NULL_MALWARE_RISK] = fuzzy.Adjective.Adjective(fuzzy.set.Singleton.Singleton(0.0))
     output_malware_risk.adjectives[AVERAGE_MALWARE_RISK] = fuzzy.Adjective.Adjective(fuzzy.set.Singleton.Singleton(30.0))
     output_malware_risk.adjectives[HIGH_MALWARE_RISK] = fuzzy.Adjective.Adjective(fuzzy.set.Singleton.Singleton(60.0))
     output_malware_risk.adjectives[UNACCEPTABLE_MALWARE_RISK] = fuzzy.Adjective.Adjective(fuzzy.set.Singleton.Singleton(100.0))
-    
+
     system.variables["output_malware_risk"] = output_malware_risk
 
     # Rules
-    #RULE 0: DYNAMIC 
+    #RULE 0: DYNAMIC
     add_system_rule(system, "r0", fuzzy.Rule.Rule(
                                         adjective=[system.variables["output_malware_risk"].adjectives[NULL_MALWARE_RISK]],
                                         operator=fuzzy.operator.Input.Input( system.variables["input_Dynamic_Risk"].adjectives[LOW_RISK] )
                     )
     )
-    
+
     add_system_rule(system, "r0a", fuzzy.Rule.Rule(
                                         adjective=[system.variables["output_malware_risk"].adjectives[UNACCEPTABLE_MALWARE_RISK]],
                                         operator=fuzzy.operator.Input.Input( system.variables["input_Dynamic_Risk"].adjectives[UNACCEPTABLE_RISK] )
                     )
     )
-    
+
 
     #RULE 1: MONEY
     add_system_rule(system, "r1", fuzzy.Rule.Rule(
@@ -227,14 +227,14 @@ def create_system_risk() :
                                         operator=fuzzy.operator.Input.Input( system.variables["input_Money_Risk"].adjectives[UNACCEPTABLE_RISK] )
                     )
     )
-    
+
     #RULE 3 : BINARY
     add_system_rule(system, "r3", fuzzy.Rule.Rule(
                                         adjective=[system.variables["output_malware_risk"].adjectives[AVERAGE_MALWARE_RISK]],
                                         operator=fuzzy.operator.Input.Input( system.variables["input_Binary_Risk"].adjectives[AVERAGE_RISK] )
                     )
     )
-    
+
     add_system_rule(system, "r3a", fuzzy.Rule.Rule(
                                         adjective=[system.variables["output_malware_risk"].adjectives[HIGH_RISK]],
                                         operator=fuzzy.operator.Input.Input( system.variables["input_Binary_Risk"].adjectives[HIGH_RISK] )
@@ -246,7 +246,7 @@ def create_system_risk() :
                                         operator=fuzzy.operator.Input.Input( system.variables["input_Binary_Risk"].adjectives[UNACCEPTABLE_RISK] )
                     )
     )
-    
+
     # PRIVACY + INTERNET
     add_system_rule(system, "r5", fuzzy.Rule.Rule(
                                         adjective=[system.variables["output_malware_risk"].adjectives[HIGH_MALWARE_RISK]],
@@ -264,13 +264,13 @@ def create_system_risk() :
                                             fuzzy.operator.Input.Input( system.variables["input_Internet_Risk"].adjectives[HIGH_RISK] ) )
                     )
     )
-    
+
     add_system_rule(system, "r6", fuzzy.Rule.Rule(
                                         adjective=[system.variables["output_malware_risk"].adjectives[HIGH_RISK]],
                                         operator=fuzzy.operator.Input.Input( system.variables["input_Dangerous_Risk"].adjectives[HIGH_RISK] )
                     )
     )
-    
+
     add_system_rule(system, "r6a", fuzzy.Rule.Rule(
                                         adjective=[system.variables["output_malware_risk"].adjectives[UNACCEPTABLE_RISK]],
                                         operator=fuzzy.operator.Input.Input( system.variables["input_Dangerous_Risk"].adjectives[UNACCEPTABLE_RISK] )
@@ -310,7 +310,7 @@ def create_system_method_score() :
     import fuzzy.norm.Min
     import fuzzy.norm.Max
     import fuzzy.Rule
-    
+
     system = fuzzy.System.System()
 
     input_Length_MS = fuzzy.InputVariable.InputVariable(fuzzify=fuzzy.fuzzify.Plain.Plain())
@@ -319,10 +319,10 @@ def create_system_method_score() :
     input_JavaEntropy_MS = fuzzy.InputVariable.InputVariable(fuzzify=fuzzy.fuzzify.Plain.Plain())
     input_Permissions_MS = fuzzy.InputVariable.InputVariable(fuzzify=fuzzy.fuzzify.Plain.Plain())
     input_Similarity_MS = fuzzy.InputVariable.InputVariable(fuzzify=fuzzy.fuzzify.Plain.Plain())
-    
+
     # Input variables
 
-        # Length 
+        # Length
     system.variables["input_Length_MS"] = input_Length_MS
     input_Length_MS.adjectives[LOW_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(0.0, 1.0), (50.0, 1.0), (100.0, 0.0)]) )
     input_Length_MS.adjectives[AVERAGE_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(50.0, 0.0), (100.0, 1.0), (150.0, 1.0), (300.0, 0.0)]) )
@@ -346,19 +346,19 @@ def create_system_method_score() :
     system.variables["input_JavaEntropy_MS"] = input_JavaEntropy_MS
     input_JavaEntropy_MS.adjectives[LOW_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(0.0, 1.0), (2.0, 1.0), (4.0, 0.0)]) )
     input_JavaEntropy_MS.adjectives[HIGH_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(3.0, 0.0), (4.0, 1.0), (30.0, 1.0)]) )
-    
+
         # Permissions
     system.variables["input_Permissions_MS"] = input_Permissions_MS
     input_Permissions_MS.adjectives[LOW_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(0.0, 1.0), (3.0, 1.0), (4.0, 0.0)]) )
     input_Permissions_MS.adjectives[AVERAGE_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(3.0, 0.0), (4.0, 1.0), (8.0, 1.0), (9.0, 0.0)]) )
     input_Permissions_MS.adjectives[HIGH_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(8.0, 0.0), (10.0, 1.0), (12.0, 1.0), (13.0, 0.0)]) )
     input_Permissions_MS.adjectives[PERFECT_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(12.0, 0.0), (13.0, 1.0), (20.0, 1.0)]) )
-    
-        # Similarity Match 
+
+        # Similarity Match
     system.variables["input_Similarity_MS"] = input_Similarity_MS
     input_Similarity_MS.adjectives[HIGH_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(0.0, 1.0), (0.1, 1.0), (0.3, 0.0)]) )
     input_Similarity_MS.adjectives[LOW_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(0.3, 0.0), (0.35, 1.0), (0.4, 1.0)]) )
-    
+
 
     # Output variables
     output_method_score = fuzzy.OutputVariable.OutputVariable(
@@ -372,37 +372,37 @@ def create_system_method_score() :
     output_method_score.adjectives[PERFECT_METHOD_SCORE] = fuzzy.Adjective.Adjective(fuzzy.set.Singleton.Singleton(100.0))
 
     system.variables["output_method_score"] = output_method_score
-    
+
     add_system_rule(system, "android entropy null", fuzzy.Rule.Rule(
                                                         adjective=[system.variables["output_method_score"].adjectives[NULL_METHOD_SCORE]],
                                                         operator=fuzzy.operator.Input.Input( system.variables["input_AndroidEntropy_MS"].adjectives[LOW_SCORE] ))
     )
-    
+
     add_system_rule(system, "java entropy null", fuzzy.Rule.Rule(
                                                         adjective=[system.variables["output_method_score"].adjectives[NULL_METHOD_SCORE]],
                                                         operator=fuzzy.operator.Input.Input( system.variables["input_JavaEntropy_MS"].adjectives[LOW_SCORE] ))
     )
-    
+
     add_system_rule(system, "permissions null", fuzzy.Rule.Rule(
                                                         adjective=[system.variables["output_method_score"].adjectives[NULL_METHOD_SCORE]],
                                                         operator=fuzzy.operator.Input.Input( system.variables["input_Permissions_MS"].adjectives[LOW_SCORE] ))
     )
-    
+
     add_system_rule(system, "permissions average", fuzzy.Rule.Rule(
                                                         adjective=[system.variables["output_method_score"].adjectives[AVERAGE_METHOD_SCORE]],
                                                         operator=fuzzy.operator.Input.Input( system.variables["input_Permissions_MS"].adjectives[AVERAGE_SCORE] ))
     )
-    
+
     add_system_rule(system, "permissions high", fuzzy.Rule.Rule(
                                                         adjective=[system.variables["output_method_score"].adjectives[HIGH_METHOD_SCORE]],
                                                         operator=fuzzy.operator.Input.Input( system.variables["input_Permissions_MS"].adjectives[HIGH_SCORE] ))
     )
-   
+
     add_system_rule(system, "permissions perfect", fuzzy.Rule.Rule(
                                                         adjective=[system.variables["output_method_score"].adjectives[PERFECT_METHOD_SCORE]],
                                                         operator=fuzzy.operator.Input.Input( system.variables["input_Permissions_MS"].adjectives[PERFECT_SCORE] ))
     )
-   
+
     add_system_rule(system, "similarity low", fuzzy.Rule.Rule(
                                                         adjective=[system.variables["output_method_score"].adjectives[NULL_METHOD_SCORE]],
                                                         operator=fuzzy.operator.Input.Input( system.variables["input_Similarity_MS"].adjectives[LOW_SCORE] ))
@@ -434,7 +434,7 @@ def create_system_method_score() :
                                         fuzzy.operator.Input.Input( system.variables["input_AndroidEntropy_MS"].adjectives[HIGH_SCORE] ) )
                                     )
     )
-    
+
     add_system_rule(system, "length JavaEntropy perfect", fuzzy.Rule.Rule(
                                     adjective=[system.variables["output_method_score"].adjectives[HIGH_METHOD_SCORE]],
                                     operator=fuzzy.operator.Compound.Compound(
@@ -487,17 +487,17 @@ def create_system_method_one_score() :
     import fuzzy.norm.Min
     import fuzzy.norm.Max
     import fuzzy.Rule
-    
+
     system = fuzzy.System.System()
 
     input_Length_MS = fuzzy.InputVariable.InputVariable(fuzzify=fuzzy.fuzzify.Plain.Plain())
     input_AndroidEntropy_MS = fuzzy.InputVariable.InputVariable(fuzzify=fuzzy.fuzzify.Plain.Plain())
     input_JavaEntropy_MS = fuzzy.InputVariable.InputVariable(fuzzify=fuzzy.fuzzify.Plain.Plain())
     input_Permissions_MS = fuzzy.InputVariable.InputVariable(fuzzify=fuzzy.fuzzify.Plain.Plain())
-    
+
     # Input variables
 
-        # Length 
+        # Length
     system.variables["input_Length_MS"] = input_Length_MS
     input_Length_MS.adjectives[LOW_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(0.0, 1.0), (50.0, 1.0), (100.0, 0.0)]) )
     input_Length_MS.adjectives[AVERAGE_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(50.0, 0.0), (100.0, 1.0), (150.0, 1.0), (300.0, 0.0)]) )
@@ -513,14 +513,14 @@ def create_system_method_one_score() :
     system.variables["input_JavaEntropy_MS"] = input_JavaEntropy_MS
     input_JavaEntropy_MS.adjectives[LOW_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(0.0, 1.0), (2.0, 1.0), (4.0, 0.0)]) )
     input_JavaEntropy_MS.adjectives[HIGH_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(3.0, 0.0), (4.0, 1.0), (30.0, 1.0)]) )
-    
+
         # Permissions
     system.variables["input_Permissions_MS"] = input_Permissions_MS
     input_Permissions_MS.adjectives[LOW_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(0.0, 1.0), (3.0, 1.0), (4.0, 0.0)]) )
     input_Permissions_MS.adjectives[AVERAGE_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(3.0, 0.0), (4.0, 1.0), (8.0, 1.0), (9.0, 0.0)]) )
     input_Permissions_MS.adjectives[HIGH_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(8.0, 0.0), (10.0, 1.0), (12.0, 1.0), (13.0, 0.0)]) )
     input_Permissions_MS.adjectives[PERFECT_SCORE] = fuzzy.Adjective.Adjective( fuzzy.set.Polygon.Polygon([(12.0, 0.0), (13.0, 1.0), (20.0, 1.0)]) )
-    
+
     # Output variables
     output_method_score = fuzzy.OutputVariable.OutputVariable(
                                 defuzzify=fuzzy.defuzzify.COGS.COGS(),
@@ -533,37 +533,37 @@ def create_system_method_one_score() :
     output_method_score.adjectives[PERFECT_METHOD_SCORE] = fuzzy.Adjective.Adjective(fuzzy.set.Singleton.Singleton(100.0))
 
     system.variables["output_method_one_score"] = output_method_score
-    
+
     add_system_rule(system, "android entropy null", fuzzy.Rule.Rule(
                                                         adjective=[system.variables["output_method_one_score"].adjectives[NULL_METHOD_SCORE]],
                                                         operator=fuzzy.operator.Input.Input( system.variables["input_AndroidEntropy_MS"].adjectives[LOW_SCORE] ))
     )
-    
+
     add_system_rule(system, "java entropy null", fuzzy.Rule.Rule(
                                                         adjective=[system.variables["output_method_one_score"].adjectives[NULL_METHOD_SCORE]],
                                                         operator=fuzzy.operator.Input.Input( system.variables["input_JavaEntropy_MS"].adjectives[LOW_SCORE] ))
     )
-    
+
     add_system_rule(system, "permissions null", fuzzy.Rule.Rule(
                                                         adjective=[system.variables["output_method_one_score"].adjectives[NULL_METHOD_SCORE]],
                                                         operator=fuzzy.operator.Input.Input( system.variables["input_Permissions_MS"].adjectives[LOW_SCORE] ))
     )
-    
+
     add_system_rule(system, "permissions average", fuzzy.Rule.Rule(
                                                         adjective=[system.variables["output_method_one_score"].adjectives[AVERAGE_METHOD_SCORE]],
                                                         operator=fuzzy.operator.Input.Input( system.variables["input_Permissions_MS"].adjectives[AVERAGE_SCORE] ))
     )
-    
+
     add_system_rule(system, "permissions high", fuzzy.Rule.Rule(
                                                         adjective=[system.variables["output_method_one_score"].adjectives[HIGH_METHOD_SCORE]],
                                                         operator=fuzzy.operator.Input.Input( system.variables["input_Permissions_MS"].adjectives[HIGH_SCORE] ))
     )
-   
+
     add_system_rule(system, "permissions perfect", fuzzy.Rule.Rule(
                                                         adjective=[system.variables["output_method_one_score"].adjectives[PERFECT_METHOD_SCORE]],
                                                         operator=fuzzy.operator.Input.Input( system.variables["input_Permissions_MS"].adjectives[PERFECT_SCORE] ))
     )
-   
+
 
     add_system_rule(system, "length permissions perfect", fuzzy.Rule.Rule(
                                     adjective=[system.variables["output_method_one_score"].adjectives[PERFECT_METHOD_SCORE]],
@@ -582,7 +582,7 @@ def create_system_method_one_score() :
                                         fuzzy.operator.Input.Input( system.variables["input_AndroidEntropy_MS"].adjectives[HIGH_SCORE] ) )
                                     )
     )
-    
+
     add_system_rule(system, "length JavaEntropy perfect", fuzzy.Rule.Rule(
                                     adjective=[system.variables["output_method_one_score"].adjectives[HIGH_METHOD_SCORE]],
                                     operator=fuzzy.operator.Compound.Compound(
@@ -596,7 +596,7 @@ def create_system_method_one_score() :
 
 def export_system(system, directory) :
     from fuzzy.doc.plot.gnuplot import doc
-    
+
     d = doc.Doc(directory)
     d.createDoc(system)
 
@@ -615,7 +615,7 @@ def export_system(system, directory) :
     d.overscan=0
     in_vars = [name for name,var in system.variables.items() if isinstance(var,fuzzy.InputVariable.InputVariable)]
     out_vars = [name for name,var in system.variables.items() if isinstance(var,fuzzy.OutputVariable.OutputVariable)]
-    
+
     if len(in_vars) == 2 and not (
             isinstance(system.variables[in_vars[0]].fuzzify,fuzzy.fuzzify.Dict.Dict)
         or
@@ -633,12 +633,12 @@ SYSTEM = None
 class RiskIndicator :
     """
     Calculate the risk to install a specific android application by using :
-        Permissions : 
+        Permissions :
             - dangerous
             - signatureOrSystem
             - signature
             - normal
-        
+
             - money
             - internet
             - sms
@@ -661,7 +661,7 @@ class RiskIndicator :
         if SYSTEM == None :
             SYSTEM = create_system_risk()
 #            export_system( SYSTEM, "./output" )
-        
+
         self.system_method_risk = create_system_method_one_score()
 
     def __eval_risk_perm(self, list_details_permissions, risks) :
@@ -670,7 +670,7 @@ class RiskIndicator :
             if permission.find(".") != -1 :
                 permission = permission.split(".")[-1]
 #            print permission, GENERAL_PERMISSIONS_RISK[ list_details_permissions[ i ][0] ]
-          
+
             risk_type = GENERAL_PERMISSIONS_RISK[ list_details_permissions[ i ][0] ]
 
             risks[ DANGEROUS_RISK ] += RISK_VALUES [ risk_type ]
@@ -695,7 +695,7 @@ class RiskIndicator :
                 # shared library
                 if "shared" in list_details_files[ i ] :
                     risks[ BINARY_RISK ] += RISK_VALUES [ BINARY_RISK ]
-                # binary 
+                # binary
                 else :
                     risks[ BINARY_RISK ] += RISK_VALUES [ EXPLOIT_RISK ]
 
@@ -710,7 +710,7 @@ class RiskIndicator :
         input_val['input_Dynamic_Risk'] = risks[ DYNAMIC_RISK ]
 
         #print input_val,
-        
+
         SYSTEM.calculate(input=input_val, output = output_values)
 
         val = output_values[ "output_malware_risk" ]
@@ -729,7 +729,7 @@ class RiskIndicator :
             else :
                 return self.with_apk_analysis( apk_file, analysis_method )
         return -1
-    
+
     def with_apk_direct(self, apk) :
         risks = { DANGEROUS_RISK    : 0.0,
                   MONEY_RISK        : 0.0,
@@ -741,7 +741,7 @@ class RiskIndicator :
 
         self.__eval_risk_perm( apk.get_details_permissions(), risks )
         self.__eval_risk_bin( apk.get_files_types(), risks )
-        
+
         val = self.__eval_risks( risks )
 
         return val
@@ -755,7 +755,7 @@ class RiskIndicator :
 
             @rtype : return the risk of the dex file (from 0.0 to 100.0)
         """
-        try : 
+        try :
             vm = dvm.DalvikVMFormat( dex_file )
         except Exception, e :
             return -1
@@ -773,20 +773,20 @@ class RiskIndicator :
                   BINARY_RISK       : 0.0,
                   DYNAMIC_RISK      : 0.0,
                 }
-        
+
         if apk :
             self.__eval_risk_bin( apk.get_files_types(), risks )
             self.__eval_risk_perm( apk.get_details_permissions(), risks )
         else :
             d = {}
             for i in vmx.get_permissions( [] ) :
-                d[ i ] = DVM_PERMISSIONS["MANIFEST_PERMISSION"][i] 
+                d[ i ] = DVM_PERMISSIONS["MANIFEST_PERMISSION"][i]
             self.__eval_risk_perm( d, risks )
 
         self.__eval_risk_dyn( vmx, risks )
-        
+
         val = self.__eval_risks( risks )
-        
+
         if analysis_method == None :
             return val, {}
 
@@ -808,15 +808,15 @@ class RiskIndicator :
                                  map(lambda perm : (perm, DVM_PERMISSIONS["MANIFEST_PERMISSION"][ perm ]), vmx.get_permissions_method( method )),
             )
 
-            
+
         for v in sorted(score_order_sign, key=lambda x : score_order_sign[x], reverse=True) :
             print v.get_name(), v.get_class_name(), v.get_descriptor(), v.get_length(), score_order_sign[ v ]
 
         ##########################
 
         return val, score_order_sign
-       
-   
+
+
     def get_method_score(self, length, android_entropy, java_entropy, permissions) :
         val_permissions = 0
         for i in permissions :
@@ -827,7 +827,7 @@ class RiskIndicator :
                     val_permissions += RISK_VALUES[ j ]
             except KeyError :
                 pass
-        
+
         print length, android_entropy, java_entropy, val_permissions
 
         output_values = {"output_method_one_score" : 0.0}
@@ -836,7 +836,7 @@ class RiskIndicator :
         input_val['input_AndroidEntropy_MS'] = android_entropy
         input_val['input_JavaEntropy_MS'] = java_entropy
         input_val['input_Permissions_MS'] = val_permissions
-       
+
         self.system_method_risk.calculate(input=input_val, output = output_values)
         score = output_values[ "output_method_one_score" ]
 
@@ -851,7 +851,7 @@ class MethodScore :
         self.system = create_system_method_score()
         #export_system( self.system, "./output" )
 
-        
+
         val_permissions = 0
         for i in permissions :
             val_permissions += RISK_VALUES[ GENERAL_PERMISSIONS_RISK[ i[1][0] ] ]
@@ -861,7 +861,7 @@ class MethodScore :
                     val_permissions += RISK_VALUES[ j ]
             except KeyError :
                 pass
-        
+
         print length, matches, android_entropy, java_entropy, similarity_matches, val_permissions
 
         output_values = {"output_method_score" : 0.0}
@@ -872,7 +872,7 @@ class MethodScore :
         input_val['input_JavaEntropy_MS'] = java_entropy
         input_val['input_Permissions_MS'] = val_permissions
         input_val['input_Similarity_MS'] = similarity_matches
-       
+
         self.system.calculate(input=input_val, output = output_values)
         self.score = output_values[ "output_method_score" ]
 

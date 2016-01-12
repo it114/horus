@@ -98,7 +98,7 @@ class StaticAnalyzer(object):
             "version_code": a.get_androidversion_code(),
             "activities": a.get_activities(),
             "telephony_identifiers_leakage": gather_telephony_identifiers_leakage(dx),
-            "device_settings_harvesting": gather_device_settings_harvesting(dx),
+            #"device_settings_harvesting": gather_device_settings_harvesting(dx),
             "location_lookup": gather_location_lookup(dx),
             "connection_interfaces_exfiltration": gather_connection_interfaces_exfiltration(dx),
             "telephony_services_abuse": gather_telephony_services_abuse(a, dx),

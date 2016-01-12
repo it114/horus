@@ -16,11 +16,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with Androguard.  If not, see <http://www.gnu.org/licenses/>.
 
-from androguard.core import androconf
-from androguard.core.bytecodes import jvm
-from androguard.core.bytecodes import dvm
-from androguard.core.bytecodes import apk
-from androguard.core.analysis import analysis
+from tools.androguard.androguard.core import androconf
+from tools.androguard.androguard.core.bytecodes import jvm
+from tools.androguard.androguard.core.bytecodes import dvm
+from tools.androguard.androguard.core.bytecodes import apk
+from tools.androguard.androguard.core.analysis import analysis
 
 class BC :
     def __init__(self, bc) :
@@ -116,7 +116,7 @@ class Androguard:
                 if ret_type == "APK" :
                     x = apk.APK( i )
                     bc = dvm.DalvikVMFormat( x.get_dex() )
-                elif ret_type == "DEX" : 
+                elif ret_type == "DEX" :
                     bc = dvm.DalvikVMFormat( open(i, "rb").read() )
                 elif ret_type == "ELF" :
                     from androguard.core.binaries import elf
